@@ -13,6 +13,15 @@
 - Railway, Render, or Laravel Cloud: Laravel application and worker.
 - Sentry: error monitoring.
 
+## Current Supabase project
+
+- Project: `mofi-db`
+- Project ref: `egqpjrwmnckgzlajemnl`
+- Region: Asia-Pacific (Sydney)
+- Database host: `db.egqpjrwmnckgzlajemnl.supabase.co`
+
+The database password is intentionally kept only in the local `mofi-app/.env` file and is never committed to GitHub.
+
 ## Release checklist
 
 - Run migrations and tests.
