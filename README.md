@@ -21,6 +21,14 @@ MOFI is a personal finance and investment platform inspired by the provided land
 - [Deployment](docs/DEPLOYMENT.md)
 - [Pre-coding readiness checklist](docs/PRE_CODING_READINESS.md)
 - [Architecture decisions](docs/DECISIONS.md)
+- [Product scope](docs/PRODUCT_SCOPE.md)
+- [Use cases](docs/USE_CASES.md)
+- [Business rules](docs/BUSINESS_RULES.md)
+- [Metric definitions](docs/METRIC_DEFINITIONS.md)
+- [Data dictionary](docs/DATA_DICTIONARY.md)
+- [Acceptance scenarios](docs/ACCEPTANCE_SCENARIOS.md)
+- [ERD MVP](docs/ERD_MVP.md)
+- [Architecture and operations](docs/ARCHITECTURE_AND_OPERATIONS.md)
 
 ## Local setup
 
