@@ -6,6 +6,8 @@ Build a Vietnamese personal finance and investment platform with a public market
 
 ## Delivery phases
 
+Before implementing the application database, follow [the requirements and database planning workflow](REQUIREMENTS_AND_DATABASE_PLAN.md). Define MVP scope, use cases, business rules, dashboard metric formulas, ERD, data dictionary, and acceptance scenarios, then review the design before writing and applying business migrations. The tables named in existing documents are candidates, not an approved schema.
+
 1. **Foundation:** install PHP, Composer, Laravel, Node.js; initialize GitHub repository; define environment variables and coding conventions.
 2. **Public website:** reproduce the MOFI landing page, responsive layout, reusable sections, and registration calls to action.
 3. **Authentication:** registration, login, password reset, profile, and user/admin authorization.

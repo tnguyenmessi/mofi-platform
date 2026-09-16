@@ -1,5 +1,7 @@
 # MOFI Database Design
 
+Status: Preliminary table inventory, not an approved implementation schema. Refer to [the requirements and database plan](REQUIREMENTS_AND_DATABASE_PLAN.md) for the design/review process and unresolved business rules. The entities below must be revised against that process before business migrations are written.
+
 ## Core tables
 
 `users`, `profiles`, `assets`, `portfolios`, `transactions`, `asset_holdings`, `portfolio_snapshots`, `financial_goals`, `goal_contributions`, `watchlists`, `watchlist_items`, `market_quotes`, `market_indices`, `alerts`, `notifications`, `ai_conversations`, `ai_messages`, `learning_courses`, `learning_lessons`, `subscriptions`.

@@ -12,6 +12,8 @@ MOFI is a personal finance and investment platform inspired by the provided land
 
 ## Documentation
 
+- [Requirements and database planning workflow (Vietnamese)](docs/REQUIREMENTS_AND_DATABASE_PLAN.md)
+
 - [Project plan](docs/PROJECT_PLAN.md)
 - [Laravel guide](docs/LARAVEL_GUIDE.md)
 - [Database design](docs/DATABASE_DESIGN.md)
