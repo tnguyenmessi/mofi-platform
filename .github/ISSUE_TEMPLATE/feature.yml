@@ -1,0 +1,29 @@
+name: Feature
+description: Propose a scoped MOFI feature
+title: "feat: "
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: User goal
+      description: Who needs what and why?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List observable success and error cases.
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - MVP
+        - Phase 2
+        - Phase 3
+        - Discovery
+    validations:
+      required: true

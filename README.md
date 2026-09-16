@@ -19,6 +19,8 @@ MOFI is a personal finance and investment platform inspired by the provided land
 - [Database design](docs/DATABASE_DESIGN.md)
 - [API design](docs/API_DESIGN.md)
 - [Deployment](docs/DEPLOYMENT.md)
+- [Pre-coding readiness checklist](docs/PRE_CODING_READINESS.md)
+- [Architecture decisions](docs/DECISIONS.md)
 
 ## Local setup
 
