@@ -3,22 +3,20 @@
 namespace Database\Factories;
 
 use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Notification>
- */
+/** @extends Factory<Notification> */
 class NotificationFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            //
+            'user_id' => User::factory(),
+            'title' => 'Demo notification',
+            'body' => 'Simulated market data only.',
+            'source_rule_id' => null,
+            'read_at' => null,
         ];
     }
 }
