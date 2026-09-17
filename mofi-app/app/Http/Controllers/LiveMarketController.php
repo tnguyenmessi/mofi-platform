@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -16,7 +17,7 @@ class LiveMarketController extends Controller
         if ($response->failed()) {
             return response()->json(['message' => 'Nguồn giá công khai hiện không phản hồi.'], 502);
         }
-        $points = collect($response->json())->map(fn (array $row): array => ['date' => now()->setTimestampMs((int) $row[0])->toDateString(), 'close' => (float) $row[4]])->values();
+        $points = collect($response->json())->map(fn (array $row): array => ['date' => CarbonImmutable::createFromTimestampMs((int) $row[0])->toDateString(), 'close' => (float) $row[4]])->values();
 
         return response()->json(['symbol' => $symbol, 'fetched_at' => now()->toIso8601String(), 'source' => 'Binance public market data', 'points' => $points]);
     }
