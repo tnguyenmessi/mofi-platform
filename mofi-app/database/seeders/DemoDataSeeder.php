@@ -2,13 +2,16 @@
 
 namespace Database\Seeders;
 
+use App\Models\AlertRule;
 use App\Models\Goal;
 use App\Models\Instrument;
 use App\Models\ManualAsset;
 use App\Models\MarketPrice;
 use App\Models\Portfolio;
+use App\Models\Task;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\WatchlistItem;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -88,5 +91,11 @@ class DemoDataSeeder extends Seeder
         ManualAsset::where('user_id', $user->id)->where('name', 'Tai san thu cong demo')->update(['name' => 'Tài sản thủ công demo']);
         Goal::firstOrCreate(['user_id' => $user->id, 'name' => 'Quỹ mục tiêu'], ['category' => 'emergency', 'target_amount' => 10000000, 'saved_amount' => 2000000, 'target_date' => '2027-09-15']);
         ManualAsset::firstOrCreate(['user_id' => $user->id, 'name' => 'Tài sản thủ công demo'], ['category' => 'other', 'current_value' => 5000000, 'valued_on' => '2026-09-15']);
+        foreach ([$instrument, $catalog[1][0], $catalog[2][0]] as $asset) {
+            WatchlistItem::firstOrCreate(['user_id' => $user->id, 'instrument_id' => $asset->id]);
+        }
+        Task::firstOrCreate(['user_id' => $user->id, 'title' => 'Xem lại tỷ trọng danh mục'], ['due_date' => '2026-09-18']);
+        Task::firstOrCreate(['user_id' => $user->id, 'title' => 'Đọc bài học về đa dạng hóa'], ['due_date' => '2026-09-18']);
+        AlertRule::firstOrCreate(['user_id' => $user->id, 'instrument_id' => $instrument->id, 'operator' => 'GTE', 'threshold' => 130000], ['enabled' => true, 'last_condition' => false]);
     }
 }
