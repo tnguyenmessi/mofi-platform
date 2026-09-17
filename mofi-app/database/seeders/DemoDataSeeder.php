@@ -40,14 +40,14 @@ class DemoDataSeeder extends Seeder
     {
         $user = User::updateOrCreate(['email' => 'demo@mofi.local'], ['name' => 'MOFI Demo A', 'password' => Hash::make($password), 'email_verified_at' => now()]);
         $empty = User::updateOrCreate(['email' => 'empty@mofi.local'], ['name' => 'MOFI Demo B', 'password' => Hash::make($password), 'email_verified_at' => now()]);
-        $portfolio = Portfolio::updateOrCreate(['user_id' => $user->id], ['name' => 'Danh muc VND Demo', 'currency' => 'VND']);
-        Portfolio::updateOrCreate(['user_id' => $empty->id], ['name' => 'Danh muc trong', 'currency' => 'VND']);
-        $instrument = Instrument::updateOrCreate(['market' => 'VN', 'symbol' => 'MOFI'], ['name' => 'MOFI Demo Equity', 'asset_class' => 'stock', 'sector' => 'Technology', 'currency' => 'VND', 'price_unit' => 'share', 'tradable' => true]);
+        $portfolio = Portfolio::updateOrCreate(['user_id' => $user->id], ['name' => 'Danh mục VND Demo', 'currency' => 'VND']);
+        Portfolio::updateOrCreate(['user_id' => $empty->id], ['name' => 'Danh mục trống', 'currency' => 'VND']);
+        $instrument = Instrument::updateOrCreate(['market' => 'VN', 'symbol' => 'MOFI'], ['name' => 'Cổ phiếu MOFI mô phỏng', 'asset_class' => 'stock', 'sector' => 'Công nghệ', 'currency' => 'VND', 'price_unit' => 'share', 'tradable' => true]);
 
         $catalog = [[$instrument, 125000],
-            [Instrument::firstOrCreate(['market' => 'VN', 'symbol' => 'VNINDEX-DEMO'], ['name' => 'Vietnam index demo', 'asset_class' => 'index', 'currency' => 'VND', 'price_unit' => 'point', 'tradable' => false]), 1300],
-            [Instrument::firstOrCreate(['market' => 'DEMO', 'symbol' => 'GOLD-DEMO'], ['name' => 'Gold demo', 'asset_class' => 'gold', 'currency' => 'VND', 'price_unit' => 'tael', 'tradable' => false]), 90000000],
-            [Instrument::firstOrCreate(['market' => 'DEMO', 'symbol' => 'BTC-DEMO'], ['name' => 'Bitcoin demo', 'asset_class' => 'crypto', 'currency' => 'USD', 'price_unit' => 'coin', 'tradable' => false]), 60000],
+            [Instrument::firstOrCreate(['market' => 'VN', 'symbol' => 'VNINDEX-DEMO'], ['name' => 'Chỉ số Việt Nam mô phỏng', 'asset_class' => 'index', 'currency' => 'VND', 'price_unit' => 'point', 'tradable' => false]), 1300],
+            [Instrument::firstOrCreate(['market' => 'DEMO', 'symbol' => 'GOLD-DEMO'], ['name' => 'Vàng mô phỏng', 'asset_class' => 'gold', 'currency' => 'VND', 'price_unit' => 'tael', 'tradable' => false]), 90000000],
+            [Instrument::firstOrCreate(['market' => 'DEMO', 'symbol' => 'BTC-DEMO'], ['name' => 'Bitcoin mô phỏng', 'asset_class' => 'crypto', 'currency' => 'USD', 'price_unit' => 'coin', 'tradable' => false]), 60000],
         ];
         $priceRows = [];
         foreach ($catalog as [$asset, $finalPrice]) {
@@ -84,7 +84,9 @@ class DemoDataSeeder extends Seeder
             }
             Transaction::create(array_merge(['user_id' => $user->id, 'portfolio_id' => $portfolio->id, 'quantity' => null, 'unit_price' => null, 'fee' => 0, 'tax' => 0, 'request_key' => $key, 'request_hash' => $hash], $row));
         }
-        Goal::firstOrCreate(['user_id' => $user->id, 'name' => 'Quy muc tieu'], ['category' => 'emergency', 'target_amount' => 10000000, 'saved_amount' => 2000000, 'target_date' => '2027-09-15']);
-        ManualAsset::firstOrCreate(['user_id' => $user->id, 'name' => 'Tai san thu cong demo'], ['category' => 'other', 'current_value' => 5000000, 'valued_on' => '2026-09-15']);
+        Goal::where('user_id', $user->id)->where('name', 'Quy muc tieu')->update(['name' => 'Quỹ mục tiêu']);
+        ManualAsset::where('user_id', $user->id)->where('name', 'Tai san thu cong demo')->update(['name' => 'Tài sản thủ công demo']);
+        Goal::firstOrCreate(['user_id' => $user->id, 'name' => 'Quỹ mục tiêu'], ['category' => 'emergency', 'target_amount' => 10000000, 'saved_amount' => 2000000, 'target_date' => '2027-09-15']);
+        ManualAsset::firstOrCreate(['user_id' => $user->id, 'name' => 'Tài sản thủ công demo'], ['category' => 'other', 'current_value' => 5000000, 'valued_on' => '2026-09-15']);
     }
 }

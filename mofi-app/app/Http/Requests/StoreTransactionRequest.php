@@ -38,11 +38,11 @@ class StoreTransactionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            '*.prohibited' => 'This field is assigned by the server or is not applicable to this transaction.',
-            '*.string' => 'Send financial values as decimal strings.',
-            '*.regex' => 'Use non-negative decimal notation with the supported precision.',
-            'request_key.uuid' => 'The request key must be a UUID.',
-            'kind.in' => 'Select DEPOSIT, WITHDRAW, BUY, SELL or DIVIDEND.',
+            '*.prohibited' => 'Trường này do hệ thống thiết lập hoặc không áp dụng cho giao dịch.',
+            '*.string' => 'Giá trị tài chính cần được gửi dưới dạng chuỗi số.',
+            '*.regex' => 'Nhập số không âm với số chữ số thập phân được hỗ trợ.',
+            'request_key.uuid' => 'Mã yêu cầu không hợp lệ.',
+            'kind.in' => 'Chọn nạp tiền, rút tiền, mua, bán hoặc nhận cổ tức.',
         ];
     }
 }

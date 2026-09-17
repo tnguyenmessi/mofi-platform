@@ -33,29 +33,29 @@ class RecordTransaction
             $existing = $locked->transactions()->where('request_key', $key)->first();
             if ($existing) {
                 if (! hash_equals($existing->request_hash, $hash)) {
-                    throw new ConflictHttpException('This request key was already used for a different transaction.');
+                    throw new ConflictHttpException('Mã yêu cầu đã được dùng cho một giao dịch khác.');
                 }
 
                 return ['transaction' => $existing, 'replayed' => true, 'summary' => $this->summary->forPortfolio($locked)];
             }
             if ($locked->currency !== 'VND') {
-                $this->reject('portfolio', 'Only VND portfolios are supported.');
+                $this->reject('portfolio', 'Chỉ hỗ trợ danh mục bằng VND.');
             }
             if ($payload['instrument_id'] !== null) {
                 $instrument = Instrument::find($payload['instrument_id']);
                 if (! $instrument || ! $instrument->tradable || $instrument->asset_class !== 'stock'
                     || $instrument->market !== 'VN' || $instrument->currency !== 'VND') {
-                    $this->reject('instrument_id', 'Select a tradable Vietnamese stock priced in VND.');
+                    $this->reject('instrument_id', 'Hãy chọn cổ phiếu Việt Nam được giao dịch bằng VND.');
                 }
             }
             $rows = $locked->transactions()->orderBy('trade_date')->orderBy('id')->limit(10001)->get();
             if ($rows->count() >= 10000) {
-                $this->reject('portfolio', 'The demo portfolio has reached its transaction limit.');
+                $this->reject('portfolio', 'Danh mục đã đạt giới hạn giao dịch của bản demo.');
             }
             $cash = $quantity = BigDecimal::zero();
             foreach ($rows as $row) {
                 if ($row->trade_date->toDateString() > $payload['trade_date']) {
-                    $this->reject('trade_date', 'Cannot append a transaction before existing portfolio history.');
+                    $this->reject('trade_date', 'Không thể ghi giao dịch trước lịch sử hiện có.');
                 }
                 $cash = $cash->plus($row->cash_delta);
                 if ($row->instrument_id === $payload['instrument_id']) {
@@ -67,10 +67,10 @@ class RecordTransaction
                 }
             }
             if ($payload['kind'] === 'SELL' && $quantity->isLessThan($payload['quantity'])) {
-                $this->reject('quantity', 'Not enough shares to sell.');
+                $this->reject('quantity', 'Không đủ cổ phiếu để bán.');
             }
             if ($cash->plus($payload['cash_delta'])->isNegative()) {
-                $this->reject('gross_amount', 'Not enough cash for this transaction including fees and tax.');
+                $this->reject('gross_amount', 'Không đủ tiền mặt cho giao dịch, bao gồm phí và thuế.');
             }
             $transaction = $locked->transactions()->create(array_merge($payload, [
                 'user_id' => $user->id, 'request_key' => $key, 'request_hash' => $hash,
@@ -89,22 +89,22 @@ class RecordTransaction
         $fee = BigDecimal::of($input['fee'] ?? '0')->toScale(0);
         $tax = BigDecimal::of($input['tax'] ?? '0')->toScale(0);
         if ($cash && (! $fee->isZero() || ! $tax->isZero())) {
-            $this->reject('fee', 'Deposits and withdrawals do not support fees or tax.');
+            $this->reject('fee', 'Nạp và rút tiền không áp dụng phí hoặc thuế.');
         }
         $quantity = $trade ? BigDecimal::of($input['quantity'])->toScale(8) : null;
         $price = $trade ? BigDecimal::of($input['unit_price'])->toScale(8) : null;
         if ($trade && (! $quantity->isPositive() || $quantity->isGreaterThan('1000000000'))) {
-            $this->reject('quantity', 'Quantity must be between 1 and 1000000000 whole shares.');
+            $this->reject('quantity', 'Số lượng phải là số nguyên từ 1 đến 1.000.000.000 cổ phiếu.');
         }
         if ($trade && (! $price->isPositive() || $price->isGreaterThan('1000000000000'))) {
-            $this->reject('unit_price', 'Price must be positive and at most 1000000000000.');
+            $this->reject('unit_price', 'Giá phải lớn hơn 0 và không vượt quá 1.000.000.000.000.');
         }
         $gross = $trade ? $quantity->multipliedBy($price)->toScale(0, RoundingMode::HalfUp) : BigDecimal::of($input['gross_amount'])->toScale(0);
         if (! $gross->isPositive() || $gross->isGreaterThanOrEqualTo('100000000000000000000')) {
-            $this->reject('gross_amount', 'Gross amount must be positive and less than 100000000000000000000 VND.');
+            $this->reject('gross_amount', 'Số tiền phải lớn hơn 0 và nằm trong giới hạn giao dịch demo.');
         }
         if (in_array($kind, ['SELL', 'DIVIDEND'], true) && $gross->isLessThan($fee->plus($tax))) {
-            $this->reject('fee', 'Fees and tax cannot exceed gross proceeds.');
+            $this->reject('fee', 'Phí và thuế không được vượt quá số tiền thu về.');
         }
         $delta = match ($kind) {
             'DEPOSIT' => $gross,
@@ -113,7 +113,7 @@ class RecordTransaction
             'SELL', 'DIVIDEND' => $gross->minus($fee)->minus($tax),
         };
         if ($delta->abs()->isGreaterThanOrEqualTo('100000000000000000000')) {
-            $this->reject('gross_amount', 'Transaction total exceeds the demo amount limit.');
+            $this->reject('gross_amount', 'Tổng giao dịch vượt quá giới hạn của bản demo.');
         }
 
         return [
