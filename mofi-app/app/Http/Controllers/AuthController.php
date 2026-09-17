@@ -19,11 +19,13 @@ class AuthController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $request->merge(['email' => strtolower(trim((string) $request->input('email')))]);
         $credentials = $request->validate(['email' => ['required', 'email'], 'password' => ['required', 'string']]);
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()->withErrors(['email' => 'Email hoặc mật khẩu chưa đúng.'])->onlyInput('email');
         }
         $request->session()->regenerate();
+
         return redirect()->intended('/dashboard');
     }
 
@@ -34,10 +36,12 @@ class AuthController extends Controller
         $user = \DB::transaction(function () use ($data) {
             $user = User::create(['name' => $data['name'], 'email' => $data['email'], 'password' => Hash::make($data['password'])]);
             Portfolio::create(['user_id' => $user->id, 'name' => 'Danh mục VND của tôi', 'currency' => 'VND']);
+
             return $user;
         });
         Auth::login($user);
         $request->session()->regenerate();
+
         return redirect('/dashboard');
     }
 
@@ -46,6 +50,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect('/');
     }
 }
