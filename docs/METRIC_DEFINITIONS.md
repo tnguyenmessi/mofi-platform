@@ -1,5 +1,7 @@
 # MOFI - Định nghĩa chỉ số và hợp đồng biểu đồ
 
+> Phạm vi: tài liệu thiết kế dài hạn v0.1. Khi làm demo 2 ngày, dùng [bộ tài liệu demo 1.0](demo/README.md). Các quy tắc khác nhau như nhiều tài khoản, goal earmark, reversal và jobs không áp dụng cho demo.
+
 v0.1 - Dự thảo. Tiền VND; decimal dạng chuỗi ở API. Mỗi kết quả ghi scope, valuation_at, data_revision, price_revision, stream (`mock`/`real`) và status. NULL là thiếu/không áp dụng, không phải số 0. Toàn bộ công thức sử dụng dữ liệu cùng cutoff và revision.
 
 ## 1. Từ vựng và phạm vi

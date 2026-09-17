@@ -1,5 +1,7 @@
 # MOFI - Quy tắc nghiệp vụ
 
+> Phạm vi: tài liệu thiết kế dài hạn v0.1. Khi làm demo 2 ngày, dùng [bộ tài liệu demo 1.0](demo/README.md). Các quy tắc khác nhau như nhiều tài khoản, goal earmark, reversal và jobs không áp dụng cho demo.
+
 v0.1 - Dự thảo 17/09/2026. Các quy tắc là phương án nhất quán để review; chưa phải đã được duyệt. Mã BR dùng để truy vết test, schema và use case.
 
 ## BR-01 - Ownership

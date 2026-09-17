@@ -1,5 +1,7 @@
 # MOFI Project Plan
 
+> Phạm vi: tài liệu thiết kế dài hạn v0.1. Khi làm demo 2 ngày, dùng [bộ tài liệu demo 1.0](demo/README.md). Các quy tắc khác nhau như nhiều tài khoản, goal earmark, reversal và jobs không áp dụng cho demo.
+
 ## Product goal
 
 Build a Vietnamese personal finance and investment platform with a public marketing site and an authenticated dashboard. The first release uses sample market data, then adds a replaceable market-data provider.

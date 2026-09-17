@@ -1,5 +1,7 @@
 # MOFI - Phạm vi sản phẩm
 
+> Phạm vi: tài liệu thiết kế dài hạn v0.1. Khi làm demo 2 ngày, dùng [bộ tài liệu demo 1.0](demo/README.md). Các quy tắc khác nhau như nhiều tài khoản, goal earmark, reversal và jobs không áp dụng cho demo.
+
 Phiên bản: 0.1 - 17/09/2026. Trạng thái: dự thảo có thể review; chưa được chủ sản phẩm/sếp phê duyệt. Các mặc định nghiệp vụ dưới đây được đề xuất để thiết kế nhất quán, không phải sự thật suy ra từ ảnh.
 
 ## 1. Mục tiêu

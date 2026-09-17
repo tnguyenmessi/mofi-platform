@@ -1,5 +1,7 @@
 # MOFI Database Design
 
+> Phạm vi: tài liệu thiết kế dài hạn v0.1. Khi làm demo 2 ngày, dùng [bộ tài liệu demo 1.0](demo/README.md). Các quy tắc khác nhau như nhiều tài khoản, goal earmark, reversal và jobs không áp dụng cho demo.
+
 Status: Preliminary table inventory, not an approved implementation schema. Refer to [the requirements and database plan](REQUIREMENTS_AND_DATABASE_PLAN.md) for the design/review process and unresolved business rules. The entities below must be revised against that process before business migrations are written.
 
 ## Core tables

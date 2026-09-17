@@ -1,5 +1,15 @@
 # MOFI Architecture Decision Record
 
+Current demo authority: [docs/demo](demo/README.md). Older Proposed entries remain historical long-term options, not requirements for the two-day demo.
+
+## ADR-005 - Two-day demo baseline
+
+- Status: Implementation baseline based on the user's two-day evaluation brief; not a claim of supervisor approval.
+- Date: 17/09/2026.
+- Decision: One VND portfolio per user, append-only demo transactions, weighted-average cost, fixed mock market date, manual goals without earmarks, lightweight price alerts and explicit simulated advanced screens.
+- Database: Twelve business tables including users; no event-ledger/reversal engine, snapshot revisions, CMS, real AI or payment integration in this delivery.
+- Consequence: Follow `demo/SPECIFICATION.md`, `demo/DATABASE.md` and `demo/DELIVERY.md`. Earlier unanswered production questions do not block demo documentation; security, correct money calculations and ownership still apply.
+
 Ghi các quyết định đã chốt, lý do, người duyệt, ngày và ảnh hưởng. Không sửa lịch sử quyết định; nếu đổi, tạo quyết định mới liên kết quyết định cũ.
 
 ## ADR-001 - Application stack

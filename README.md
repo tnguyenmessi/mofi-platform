@@ -12,6 +12,14 @@ MOFI is a personal finance and investment platform inspired by the provided land
 
 ## Documentation
 
+**Current implementation scope:** [MOFI demo in two days](docs/demo/README.md). This baseline supersedes the earlier long-term MVP proposals for the demo build.
+
+- [Demo screens and use cases](docs/demo/SPECIFICATION.md)
+- [Demo database and ERD](docs/demo/DATABASE.md)
+- [Demo schedule, tests and handoff](docs/demo/DELIVERY.md)
+- [Project overview Word document](docs/word/MOFI_Gioi_thieu_du_an.docx)
+- [Use cases and database Word document](docs/word/MOFI_Use_case_va_Database.docx)
+
 - [Requirements and database planning workflow (Vietnamese)](docs/REQUIREMENTS_AND_DATABASE_PLAN.md)
 
 - [Project plan](docs/PROJECT_PLAN.md)
@@ -32,4 +40,6 @@ MOFI is a personal finance and investment platform inspired by the provided land
 
 ## Local setup
 
-The application code will be added after the development tools are installed. Do not commit `.env`; use `.env.example` as the template for local configuration.
+The Laravel skeleton is in `mofi-app/`; the MOFI application features and React/Inertia setup are not implemented yet. Use `mofi-app/.env.example` as the application template, not the historical root template. Never commit `.env` or credentials.
+
+On 17 September 2026, a read-only PDO PostgreSQL connection using the local configuration and required TLS succeeded, with zero tables in the public schema. Laravel integration, table access controls, migrations, demo seed and CI remain implementation tasks. No real financial activity occurs in the demo.

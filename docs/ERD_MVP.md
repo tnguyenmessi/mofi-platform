@@ -1,5 +1,7 @@
 # MOFI - ERD MVP (bản để review)
 
+> Phạm vi: tài liệu thiết kế dài hạn v0.1. Khi làm demo 2 ngày, dùng [bộ tài liệu demo 1.0](demo/README.md). Các quy tắc khác nhau như nhiều tài khoản, goal earmark, reversal và jobs không áp dụng cho demo.
+
 v0.1 - Dự thảo. Đây là mô hình logic, chưa phải migration. Tên bảng phản ánh [DATA_DICTIONARY](DATA_DICTIONARY.md); trước migration cần một người review cả nghiệp vụ và SQL.
 
 ```mermaid

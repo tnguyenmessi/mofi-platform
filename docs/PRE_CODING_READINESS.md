@@ -1,5 +1,7 @@
 # MOFI Pre-coding Readiness Checklist
 
+> Phạm vi: tài liệu thiết kế dài hạn v0.1. Khi làm demo 2 ngày, dùng [bộ tài liệu demo 1.0](demo/README.md). Các quy tắc khác nhau như nhiều tài khoản, goal earmark, reversal và jobs không áp dụng cho demo.
+
 Mục tiêu của checklist này là xác nhận dự án đủ rõ để bắt đầu code MVP. Mục “đã chuẩn bị” chỉ được đánh dấu khi có tài liệu, người review và tiêu chí kiểm tra; không đánh dấu chỉ vì đã tạo file.
 
 ## 1. Product và scope

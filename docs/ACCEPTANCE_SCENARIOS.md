@@ -1,5 +1,7 @@
 # MOFI - Tình huống nghiệm thu thiết kế
 
+> Phạm vi: tài liệu thiết kế dài hạn v0.1. Khi làm demo 2 ngày, dùng [bộ tài liệu demo 1.0](demo/README.md). Các quy tắc khác nhau như nhiều tài khoản, goal earmark, reversal và jobs không áp dụng cho demo.
+
 v0.1 - Các ca bên dưới là đặc tả expected result, CHƯA chạy trên ứng dụng vì chưa có implementation. F1 là fixture ở [METRIC_DEFINITIONS](METRIC_DEFINITIONS.md). Tax 0 của trade trong F1 chỉ phục vụ test. Khi viết code cần test PostgreSQL cùng policy và domain, không thay bằng screenshot đơn thuần.
 
 | ID / liên kết | Tiền điều kiện và thao tác | Kết quả mong đợi | Cấp kiểm tra |

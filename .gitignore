@@ -8,3 +8,4 @@
 /storage/logs/
 /.phpunit.result.cache
 .DS_Store
+/.document-qa/

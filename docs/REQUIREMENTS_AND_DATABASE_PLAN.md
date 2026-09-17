@@ -1,5 +1,7 @@
 # MOFI - Kế hoạch đặc tả nghiệp vụ và thiết kế database
 
+> Phạm vi: tài liệu thiết kế dài hạn v0.1. Khi làm demo 2 ngày, dùng [bộ tài liệu demo 1.0](demo/README.md). Các quy tắc khác nhau như nhiều tài khoản, goal earmark, reversal và jobs không áp dụng cho demo.
+
 Trạng thái: Đề xuất để trao đổi và chốt phạm vi; chưa phải đặc tả đã duyệt hoặc schema triển khai.
 
 Tài liệu dựa trên hai ảnh tham chiếu: website giới thiệu MOFI và dashboard sau đăng nhập. Nội dung trong ảnh là tham khảo sản phẩm, không phải yêu cầu kỹ thuật bắt buộc. Những quyết định không thể suy ra từ ảnh được ghi là đề xuất hoặc câu hỏi cần chốt.

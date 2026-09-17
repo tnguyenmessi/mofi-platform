@@ -1,5 +1,7 @@
 # MOFI - Đặc tả use case MVP
 
+> Phạm vi: tài liệu thiết kế dài hạn v0.1. Khi làm demo 2 ngày, dùng [bộ tài liệu demo 1.0](demo/README.md). Các quy tắc khác nhau như nhiều tài khoản, goal earmark, reversal và jobs không áp dụng cho demo.
+
 Phiên bản 0.1, dự thảo review. Phạm vi và mã FR tại [PRODUCT_SCOPE](PRODUCT_SCOPE.md); quy tắc BR tại [BUSINESS_RULES](BUSINESS_RULES.md); AT là ca thiết kế, chưa phải test đã chạy.
 
 ## Quy ước áp dụng cho mọi use case

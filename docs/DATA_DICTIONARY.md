@@ -1,5 +1,7 @@
 # MOFI - Từ điển dữ liệu PostgreSQL
 
+> Phạm vi: tài liệu thiết kế dài hạn v0.1. Khi làm demo 2 ngày, dùng [bộ tài liệu demo 1.0](demo/README.md). Các quy tắc khác nhau như nhiều tài khoản, goal earmark, reversal và jobs không áp dụng cho demo.
+
 v0.1 - Thiết kế dự thảo, chưa tạo migration. Mô hình và quan hệ xem [DATABASE_DESIGN](DATABASE_DESIGN.md). Đây là ứng viên triển khai cho MVP đã mô tả, chưa phải schema tồn tại trên Supabase.
 
 ## 1. Quy ước cột, kiểu và giá trị mặc định
