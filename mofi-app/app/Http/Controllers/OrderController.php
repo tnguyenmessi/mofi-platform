@@ -39,4 +39,11 @@ class OrderController extends Controller
 
         return response()->json(['data' => $order], 200, ['Cache-Control' => 'private, no-store']);
     }
+
+    public function advance(Request $request, Portfolio $portfolio, PaperTradingService $trading): JsonResponse
+    {
+        $data = $request->validate(['instrument_id' => ['required', 'integer', 'min:1'], 'tick' => ['required', 'integer', 'min:0', 'max:89']]);
+
+        return response()->json(['data' => $trading->advance($request->user(), $portfolio, $data['instrument_id'], $data['tick'])], 200, ['Cache-Control' => 'private, no-store']);
+    }
 }

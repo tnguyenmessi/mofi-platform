@@ -23,6 +23,7 @@ Route::post('/api/v1/portfolios/{portfolio}/transactions', [TransactionControlle
     ->middleware(['auth', 'throttle:30,1'])->name('api.v1.transactions.store');
 Route::get('/api/v1/portfolios/{portfolio}/orders', [OrderController::class, 'index'])->middleware(['auth', 'throttle:60,1'])->name('api.v1.orders.index');
 Route::post('/api/v1/portfolios/{portfolio}/orders', [OrderController::class, 'store'])->middleware(['auth', 'throttle:30,1'])->name('api.v1.orders.store');
+Route::post('/api/v1/portfolios/{portfolio}/orders/advance', [OrderController::class, 'advance'])->middleware(['auth', 'throttle:30,1'])->name('api.v1.orders.advance');
 Route::post('/api/v1/orders/{order}/cancel', [OrderController::class, 'cancel'])->middleware(['auth', 'throttle:30,1'])->name('api.v1.orders.cancel');
 
 Route::get('/', fn () => view('mofi', ['mode' => 'landing']))->name('home');

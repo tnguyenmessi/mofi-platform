@@ -25,4 +25,12 @@ class DemoReplayProvider
             return ['time' => $price->price_date->toDateString(), 'open' => (string) $open, 'high' => (string) $high, 'low' => (string) $low, 'close' => (string) $close, 'volume' => '1000.00000000', 'source' => 'demo_replay'];
         })->all();
     }
+
+    /** @return array<string, string>|null */
+    public function candleAt(Instrument $instrument, int $tick): ?array
+    {
+        $candles = $this->candles($instrument, 90);
+
+        return $candles[$tick] ?? null;
+    }
 }

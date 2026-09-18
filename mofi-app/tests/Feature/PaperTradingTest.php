@@ -94,4 +94,28 @@ class PaperTradingTest extends TestCase
         $this->assertDatabaseHas('order_reservations', ['order_id' => $created->json('data.id')]);
         $this->assertNotNull(Order::find($created->json('data.id'))->reservation->released_at);
     }
+
+    public function test_advance_replay_endpoint_is_owner_scoped_and_deterministic(): void
+    {
+        [, $portfolio, $instrument] = $this->fixture();
+        $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])
+            ->assertOk()->assertJsonPath('data.tick', 0)->assertJsonPath('data.filled', []);
+        $other = User::factory()->create();
+        $this->actingAs($other)->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])->assertNotFound();
+    }
+
+    public function test_advance_replay_partially_fills_by_tick_capacity(): void
+    {
+        [, $portfolio, $instrument] = $this->fixture();
+        $this->postJson(route('api.v1.transactions.store', $portfolio), [
+            'request_key' => (string) Str::uuid(), 'kind' => 'DEPOSIT', 'gross_amount' => '10000000',
+        ])->assertCreated();
+        $order = $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id, [
+            'quantity' => '150', 'limit_price' => '124000',
+        ]))->assertCreated()->assertJsonPath('data.status', 'OPEN');
+        $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])
+            ->assertOk()->assertJsonPath('data.filled.0.status', 'PARTIALLY_FILLED')->assertJsonPath('data.filled.0.quantity', '100.00000000');
+        $this->assertDatabaseHas('orders', ['id' => $order->json('data.id'), 'status' => 'PARTIALLY_FILLED', 'filled_quantity' => '100.00000000']);
+        $this->assertDatabaseCount('executions', 1);
+    }
 }

@@ -19,7 +19,7 @@
 
 ## Verification completed
 
-- Full PHPUnit: 92 passed, 1 skipped with the bundled SQLite extension enabled (93 tests total; the opt-in local PostgreSQL concurrency test is run separately).
+- Full PHPUnit: 94 tests, 93 passed, 1 skipped with the bundled SQLite extension enabled; the opt-in local PostgreSQL concurrency test is run separately.
 - TypeScript check and Vite production build pass.
 - PostgreSQL concurrency test passes with native and emulated prepares.
 - Browser QA passed for a disposable account: deposit 2,000,000 VND, buy 10 MOFI, sell 4 MOFI; history, fees, taxes and balances updated after reload.
@@ -44,7 +44,8 @@
 - Copilot is deterministic and read-only; it is not a trained or paid LLM.
 - Community posts and Copilot history are application-managed tables with direct Postgres API access revoked and RLS enabled on PostgreSQL.
 - GitHub Actions CI now checks Pint, PHPUnit, TypeScript and the production Vite build on pushes and pull requests.
-- The candle strip now includes a lightweight volume histogram. Multi-tick advancement, an interactive timeframe selector and partial-fill replay remain separate follow-up work.
+- The candle strip now includes a lightweight volume histogram and interactive ranges. Multi-tick UI can call the deterministic advance endpoint, and partial-fill replay is covered by feature tests.
+- Paper orders can now advance through a deterministic replay tick and partially fill against the simulated tick capacity; remaining quantity stays reserved until completion or cancellation.
 - Real market providers, LLM integration, CI/CD deployment and production monitoring remain separate follow-up work.
 
 ## Demo runbook

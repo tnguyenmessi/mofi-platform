@@ -142,7 +142,7 @@ total_assets = cash + market_value + manual_assets
 - MARKET SELL khớp theo bid mô phỏng tiếp theo.
 - LIMIT BUY khớp khi ask `<= limit_price`.
 - LIMIT SELL khớp khi bid `>= limit_price`.
-- Bản đầu khớp toàn bộ; partial fill để sau.
+- Khớp toàn bộ cho lệnh thị trường hiện tại; replay tick có giới hạn volume để mô phỏng partial fill cho lệnh limit.
 - Không dùng dữ liệu tương lai tại thời điểm đặt lệnh.
 
 ### Transaction flow
@@ -295,9 +295,9 @@ total_assets = cash + market_value + manual_assets
 
 Đợt paper trading chỉ được xem là hoàn tất khi:
 
-- Migration chạy được trên PostgreSQL/Supabase.
+- Migration chạy được trên PostgreSQL/Supabase, bao gồm nhiều execution cho một order.
 - Fixture replay tái hiện cùng kết quả sau reset.
-- Đặt, giữ, khớp, hủy và retry đều có test.
+- Đặt, giữ, khớp, partial fill, hủy, advance tick và retry đều có test.
 - Summary sau execution khớp ledger.
 - Browser không tràn ở desktop và mobile cơ bản.
 - Full PHPUnit, PostgreSQL concurrency, TypeScript và Vite build đều đạt.

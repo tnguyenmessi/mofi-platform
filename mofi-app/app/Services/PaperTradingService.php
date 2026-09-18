@@ -18,6 +18,37 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class PaperTradingService
 {
+    /** @return array{tick: int, filled: array<int, array<string, string>>} */
+    public function advance(User $user, Portfolio $portfolio, int $instrumentId, int $tick): array
+    {
+        Gate::forUser($user)->authorize('recordTransaction', $portfolio);
+
+        return DB::transaction(function () use ($user, $portfolio, $instrumentId, $tick): array {
+            $locked = Portfolio::whereKey($portfolio->id)->where('user_id', $user->id)->lockForUpdate()->firstOrFail();
+            $instrument = Instrument::findOrFail($instrumentId);
+            $candle = app(DemoReplayProvider::class)->candleAt($instrument, $tick);
+            if ($candle === null) {
+                $this->reject('tick', 'Phiên mô phỏng không tồn tại.');
+            }
+            $results = [];
+            $capacity = BigDecimal::of($candle['volume'])->dividedBy(10, 8, RoundingMode::Down);
+            foreach ($locked->orders()->where('instrument_id', $instrument->id)->whereIn('status', ['OPEN', 'PARTIALLY_FILLED'])->with('reservation')->lockForUpdate()->get() as $order) {
+                $price = BigDecimal::of($candle['close']);
+                $eligible = $order->order_type === 'MARKET' || ($order->side === 'BUY' ? $price->isLessThanOrEqualTo($order->limit_price) : $price->isGreaterThanOrEqualTo($order->limit_price));
+                if (! $eligible || $capacity->isZero()) {
+                    continue;
+                }
+                $remaining = BigDecimal::of($order->quantity)->minus($order->filled_quantity);
+                $quantity = $remaining->isLessThan($capacity) ? $remaining : $capacity;
+                $results[] = $this->fill($order, $order->reservation, $instrument, $price, $quantity);
+                $capacity = $capacity->minus($quantity);
+            }
+            DB::afterCommit(fn () => PortfolioSummary::forget($locked));
+
+            return ['tick' => $tick, 'filled' => $results];
+        }, 3);
+    }
+
     public function place(User $user, Portfolio $portfolio, array $input): array
     {
         Gate::forUser($user)->authorize('recordTransaction', $portfolio);
@@ -71,7 +102,7 @@ class PaperTradingService
             $reservation = $order->reservation()->create(['portfolio_id' => $locked->id, 'cash_amount' => $payload['side'] === 'BUY' ? (string) $gross : '0', 'quantity' => $payload['side'] === 'SELL' ? $payload['quantity'] : '0']);
             $fillable = $payload['order_type'] === 'MARKET' || ($payload['side'] === 'BUY' ? BigDecimal::of($quote->close)->isLessThanOrEqualTo($payload['limit_price']) : BigDecimal::of($quote->close)->isGreaterThanOrEqualTo($payload['limit_price']));
             if ($fillable) {
-                $this->fill($order, $reservation, $instrument, BigDecimal::of($quote->close));
+                $this->fill($order, $reservation, $instrument, BigDecimal::of($quote->close), BigDecimal::of($order->quantity));
             }
             DB::afterCommit(fn () => PortfolioSummary::forget($locked));
 
@@ -96,17 +127,26 @@ class PaperTradingService
         });
     }
 
-    private function fill(Order $order, OrderReservation $reservation, Instrument $instrument, BigDecimal $price): void
+    private function fill(Order $order, OrderReservation $reservation, Instrument $instrument, BigDecimal $price, BigDecimal $quantity): array
     {
-        if ($order->execution()->exists()) {
-            return;
+        if ($quantity->isZero()) {
+            return ['order_id' => (string) $order->id, 'quantity' => '0', 'status' => $order->status];
         }
-        $gross = BigDecimal::of($order->quantity)->multipliedBy($price)->toScale(0, RoundingMode::HalfUp);
+        $gross = $quantity->multipliedBy($price)->toScale(0, RoundingMode::HalfUp);
         $delta = $order->side === 'BUY' ? $gross->negated() : $gross;
-        $transaction = Transaction::create(['user_id' => $order->user_id, 'portfolio_id' => $order->portfolio_id, 'instrument_id' => $instrument->id, 'kind' => $order->side, 'trade_date' => config('demo.simulation_date'), 'quantity' => $order->quantity, 'unit_price' => (string) $price, 'gross_amount' => (string) $gross, 'fee' => '0', 'tax' => '0', 'cash_delta' => (string) $delta, 'request_key' => 'order-'.$order->id, 'request_hash' => hash('sha256', 'order-'.$order->id)]);
-        Execution::create(['order_id' => $order->id, 'portfolio_id' => $order->portfolio_id, 'instrument_id' => $instrument->id, 'transaction_id' => $transaction->id, 'quantity' => $order->quantity, 'unit_price' => (string) $price, 'gross_amount' => (string) $gross, 'fee' => '0', 'tax' => '0', 'source' => 'demo_replay', 'executed_at' => now()]);
-        $order->update(['status' => 'FILLED', 'filled_quantity' => $order->quantity, 'filled_at' => now()]);
-        $reservation->update(['released_at' => now()]);
+        $transaction = Transaction::create(['user_id' => $order->user_id, 'portfolio_id' => $order->portfolio_id, 'instrument_id' => $instrument->id, 'kind' => $order->side, 'trade_date' => config('demo.simulation_date'), 'quantity' => (string) $quantity, 'unit_price' => (string) $price, 'gross_amount' => (string) $gross, 'fee' => '0', 'tax' => '0', 'cash_delta' => (string) $delta, 'request_key' => 'order-'.$order->id.'-'.uniqid('', true), 'request_hash' => hash('sha256', $order->id.'-'.$quantity.'-'.microtime(true))]);
+        Execution::create(['order_id' => $order->id, 'portfolio_id' => $order->portfolio_id, 'instrument_id' => $instrument->id, 'transaction_id' => $transaction->id, 'quantity' => (string) $quantity, 'unit_price' => (string) $price, 'gross_amount' => (string) $gross, 'fee' => '0', 'tax' => '0', 'source' => 'demo_replay', 'executed_at' => now()]);
+        $filled = BigDecimal::of($order->filled_quantity)->plus($quantity);
+        $complete = $filled->isGreaterThanOrEqualTo($order->quantity);
+        $order->update(['status' => $complete ? 'FILLED' : 'PARTIALLY_FILLED', 'filled_quantity' => (string) $filled, 'filled_at' => $complete ? now() : null]);
+        if ($complete) {
+            $reservation->update(['released_at' => now()]);
+        } else {
+            $ratio = BigDecimal::of($order->quantity)->minus($filled)->dividedBy($order->quantity, 8, RoundingMode::HalfUp);
+            $reservation->update(['cash_amount' => (string) BigDecimal::of($reservation->cash_amount)->multipliedBy($ratio), 'quantity' => (string) BigDecimal::of($reservation->quantity)->multipliedBy($ratio)]);
+        }
+
+        return ['order_id' => (string) $order->id, 'quantity' => (string) $quantity, 'status' => $complete ? 'FILLED' : 'PARTIALLY_FILLED'];
     }
 
     private function normalize(array $input): array

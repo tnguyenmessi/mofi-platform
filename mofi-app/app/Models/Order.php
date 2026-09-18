@@ -39,4 +39,9 @@ class Order extends Model
     {
         return $this->hasOne(Execution::class);
     }
+
+    public function executions(): HasMany
+    {
+        return $this->hasMany(Execution::class);
+    }
 }
