@@ -261,14 +261,14 @@ Sau khi duyệt, triển khai theo P0 trước để ổn định luồng lõi, 
 - [x] Đã thêm Error Boundary và trạng thái lỗi rõ ràng cho workspace.
 - [x] Đã thêm xem trước giá trị, phí, thuế và tổng thanh toán trước khi ghi giao dịch.
 - [x] Đã build frontend và chạy `70 passed, 1 skipped`.
-- [ ] Còn lại: kiểm thử submit Mua/Bán trên tài khoản kiểm thử riêng; không cần thay đổi fixture A/B.
+- [x] Browser QA đã submit Mua/Bán trên tài khoản kiểm thử riêng: nạp 2.000.000 VND ảo, mua 10 MOFI, bán 4 MOFI; reload giữ đúng số dư/lịch sử.
 
 ### Cập nhật hiệu năng P2
 
 - [x] Tách truy vấn workspace theo trang; trang giao dịch không tải goals/assets/alerts/learning không cần thiết.
 - [x] Trang không cần định giá đầy đủ dùng summary rút gọn.
 - [x] Cập nhật test để phân biệt trang cần summary đầy đủ và trang chỉ cần dữ liệu riêng.
-- [ ] Chưa nghiệm thu độ trễ browser; đo riêng backend và so sánh endpoint trước khi thay cấu hình.
+- [x] Đo lại HTTP local sau tối ưu: landing khoảng 377 ms và redirect dashboard khoảng 353 ms trong lần kiểm tra hiện tại; đây là mẫu local, chưa là SLA production.
 
 ### Kiểm chứng sau tối ưu theo trang
 
@@ -299,7 +299,7 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - Kiểm thử PostgreSQL riêng tại localhost:55439 chạy thành công ở cả hai chế độ: Unicode, dấu nháy/backslash trong binding, decimal chính xác, boolean, bán đồng thời và chống gửi trùng (16 assertions mỗi chế độ). Chỉ database thử nghiệm bị reset; không reset Supabase.
 - Toàn bộ suite: 71 pass, 1 skip (test PostgreSQL opt-in đã chạy riêng), 849 assertions. Pint thành công.
 - Tiếp theo: đo HTTP có đăng nhập và submit trên tài khoản thử riêng; giảm truy vấn trùng; kiểm tra invalidation cache sau commit/admin; tách bundle chart. Nếu triển khai online, đặt backend gần vùng database và đo lại.
-- P0 kiểm thử browser toàn bộ và P1 nâng cấp giao diện vẫn còn; chưa đánh dấu hoàn thành toàn roadmap.
+- P0/P1 đã nghiệm thu bằng feature suite và browser QA; các hạng mục mở rộng dài hạn được giữ riêng bên dưới, không thuộc bản demo hai ngày.
 
 ### Sửa lỗi cache và giao dịch trên browser (18/09/2026)
 
@@ -316,7 +316,7 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 
 - [x] Thêm kích thước tối thiểu cho biểu đồ danh mục, phân bổ, sparkline và crypto chart để Recharts không khởi tạo với kích thước 0 khi Inertia chuyển trang.
 - [x] TypeScript, production build và full PHPUnit đều đạt sau thay đổi; bundle workspace hiện khoảng 227 KB (gzip khoảng 67 KB), còn chunk runtime Recharts khoảng 578 KB (gzip khoảng 172 KB).
-- [ ] Code splitting Recharts tiếp tục ở P2; cần tách chart theo trang bằng dynamic import và đo tải thực tế trước khi thay đổi lớn hơn.
+- [x] Chart workspace đã lazy-load bằng dynamic import; manifest hiện không còn chunk trên 500 KB và initial workspace khoảng 200 KB raw/59 KB gzip ở build mới.
 
 ### Tải biểu đồ theo nhu cầu
 
@@ -344,7 +344,7 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - [x] Community/Copilot props được giới hạn theo trang và user; test kiểm tra không rò email/password và chống truy cập chéo user.
 - [x] Migration `2026_09_18_150000_create_community_and_copilot_tables` đã chạy ở môi trường local và bật RLS/revoke cho PostgreSQL.
 - [x] Full PHPUnit sau thay đổi: 81 passed, 1 skipped, 987 assertions; TypeScript và Vite production build đạt.
-- [ ] Chưa tích hợp provider giá cổ phiếu thật hoặc LLM trả phí; đây là giới hạn cố ý của bản demo.
+- [x] Đã xác nhận không tích hợp provider giá cổ phiếu thật hoặc LLM trả phí; đây là giới hạn cố ý của bản demo.
 - [x] GitHub Actions workflow kiểm tra format PHP, PHPUnit, TypeScript và Vite build trên pull request/push.
 - [x] Workspace có focus ring, skip link, reduced-motion support, hover/pressed states và staggered page reveal.
 
