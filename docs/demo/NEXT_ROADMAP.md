@@ -317,3 +317,10 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - [x] Thêm kích thước tối thiểu cho biểu đồ danh mục, phân bổ, sparkline và crypto chart để Recharts không khởi tạo với kích thước 0 khi Inertia chuyển trang.
 - [x] TypeScript, production build và full PHPUnit đều đạt sau thay đổi; bundle workspace hiện khoảng 227 KB (gzip khoảng 67 KB), còn chunk runtime Recharts khoảng 578 KB (gzip khoảng 172 KB).
 - [ ] Code splitting Recharts tiếp tục ở P2; cần tách chart theo trang bằng dynamic import và đo tải thực tế trước khi thay đổi lớn hơn.
+
+### Tải biểu đồ theo nhu cầu
+
+- Đã tách các chart workspace sang `Charts.tsx`, dùng React lazy/Suspense; trang không render chart không yêu cầu chunk này. Có trạng thái chờ riêng cho từng chart.
+- Kiểm tra dependency graph trong manifest production: JS ban đầu của workspace giảm từ khoảng 805 KB xuống 441 KB, gzip từ khoảng 239 KB xuống 133 KB. Đây là dung lượng asset, không phải số đo TTFB hay tốc độ truy vấn DB.
+- Trang market đã được kiểm tra trên browser: trạng thái chờ được thay bằng 4 sparkline, không có warning/error trong lần kiểm tra. TypeScript và build thành công; build không còn chunk trên 500 KB.
+- Chart vẫn dùng chung một chunk lazy; chưa tách riêng thư viện theo từng loại biểu đồ. Landing vẫn tải chart của bản minh họa theo cách hiện có.
