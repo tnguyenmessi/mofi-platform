@@ -9,17 +9,16 @@ use App\Models\Goal;
 use App\Models\InvestmentStrategy;
 use App\Models\LearningProgress;
 use App\Models\ManualAsset;
-use App\Models\MarketPrice;
 use App\Models\Notification;
 use App\Models\SimulationScenario;
 use App\Models\Task;
 use App\Models\WatchlistItem;
+use App\Services\AlertEvaluationService;
 use App\Services\PortfolioSummary;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -140,22 +139,9 @@ class WorkspaceController extends Controller
         return back()->with('success', 'Đã xóa mục đã chọn.');
     }
 
-    public function checkAlerts(Request $request): RedirectResponse
+    public function checkAlerts(Request $request, AlertEvaluationService $evaluator): RedirectResponse
     {
-        DB::transaction(function () use ($request): void {
-            $rules = AlertRule::where('user_id', $request->user()->id)->where('enabled', true)->orderBy('id')->lockForUpdate()->get();
-            foreach ($rules as $rule) {
-                $price = MarketPrice::where('instrument_id', $rule->instrument_id)->where('price_date', '<=', config('demo.simulation_date'))->where('source', 'demo')->where('is_demo', true)->latest('price_date')->first();
-                if (! $price || ! BigDecimal::of($price->close)->isPositive()) {
-                    continue;
-                }
-                $hit = $rule->operator === 'GTE' ? BigDecimal::of($price->close)->isGreaterThanOrEqualTo($rule->threshold) : BigDecimal::of($price->close)->isLessThanOrEqualTo($rule->threshold);
-                if ($hit && ! $rule->last_condition) {
-                    Notification::create(['user_id' => $request->user()->id, 'source_rule_id' => $rule->id, 'title' => 'Giá mô phỏng đạt ngưỡng: '.$rule->instrument->symbol, 'body' => 'Giá đã đạt điều kiện cảnh báo bạn thiết lập. Đây là dữ liệu mô phỏng.', 'observed_price' => $price->close, 'source_date' => $price->price_date]);
-                }
-                $rule->update(['last_condition' => $hit, 'last_checked_at' => now()]);
-            }
-        });
+        $evaluator->evaluate($request->user());
 
         return back()->with('success', 'Đã kiểm tra giá mô phỏng. Xem kết quả trong Thông báo.');
     }

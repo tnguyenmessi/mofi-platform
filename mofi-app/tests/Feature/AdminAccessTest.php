@@ -18,6 +18,16 @@ class AdminAccessTest extends TestCase
         $this->actingAs(User::factory()->create())->get('/admin')->assertForbidden();
     }
 
+    public function test_health_is_admin_only_and_returns_availability_without_configuration(): void
+    {
+        $this->getJson('/admin/health')->assertUnauthorized();
+        $this->actingAs(User::factory()->create())->getJson('/admin/health')->assertForbidden();
+        $this->actingAs(User::factory()->create(['role' => 'admin']))->getJson('/admin/health')
+            ->assertOk()->assertJsonPath('checks.database', true)->assertJsonPath('checks.cache', true)
+            ->assertJsonPath('checks.market_fixture', false)
+            ->assertJsonMissingPath('password')->assertJsonMissingPath('host');
+    }
+
     public function test_admin_page_escapes_names_and_never_exposes_passwords(): void
     {
         $user = User::factory()->create(['name' => '<script>alert(1)</script>']);

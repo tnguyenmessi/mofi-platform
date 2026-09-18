@@ -19,12 +19,14 @@
 
 ## Verification completed
 
-- Full PHPUnit: 81 passed, 1 skipped (the opt-in local PostgreSQL concurrency test is run separately).
+- Full PHPUnit: 84 passed, 1 skipped (the opt-in local PostgreSQL concurrency test is run separately).
 - TypeScript check and Vite production build pass.
 - PostgreSQL concurrency test passes with native and emulated prepares.
 - Browser QA passed for a disposable account: deposit 2,000,000 VND, buy 10 MOFI, sell 4 MOFI; history, fees, taxes and balances updated after reload.
 - Browser QA passed for market lazy chart loading and transaction filters.
 - Admin search/filter and goal deadline/monthly-contribution checks have automated coverage.
+- Transaction receipts, owner-scoped CSV export, admin health checks, market provider abstraction and alert service extraction are covered by the latest suite.
+- Landing mockup pointer interaction, transaction receipt animation and holdings search were added with reduced-motion support.
 - Strategy Studio can save user-scoped allocation records; Investment Lab can save user-scoped shock scenarios without changing portfolio transactions.
 - Community now supports user-scoped post creation and deletion, with shared read-only browsing and owner checks.
 - MOFI Copilot now saves rule-based question history per user; answers remain deterministic and carry the simulation disclaimer.

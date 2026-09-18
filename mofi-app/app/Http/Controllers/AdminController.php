@@ -4,15 +4,40 @@ namespace App\Http\Controllers;
 
 use App\Models\Instrument;
 use App\Models\MarketPrice;
+use App\Models\Portfolio;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AdminController extends Controller
 {
+    public function health(): JsonResponse
+    {
+        $checks = ['database' => false, 'cache' => false, 'demo_portfolio' => false, 'market_fixture' => false];
+        try {
+            DB::select('select 1');
+            $checks['database'] = true;
+            $checks['demo_portfolio'] = Portfolio::exists();
+            $checks['market_fixture'] = MarketPrice::whereDate('price_date', config('demo.simulation_date'))->where('source', 'demo')->where('is_demo', true)->exists();
+        } catch (\Throwable) {
+            // Return only availability; connection errors can contain credentials.
+        }
+        $key = 'mofi.health.'.Str::uuid();
+        try {
+            Cache::put($key, 'ok', 10);
+            $checks['cache'] = Cache::get($key) === 'ok';
+            Cache::forget($key);
+        } catch (\Throwable) {
+        }
+
+        return response()->json(['checks' => $checks, 'checked_at' => now()->toIso8601String()], $checks['database'] && $checks['cache'] ? 200 : 503)->header('Cache-Control', 'private, no-store');
+    }
+
     public function __invoke(Request $request): View
     {
         $filters = $request->validate([

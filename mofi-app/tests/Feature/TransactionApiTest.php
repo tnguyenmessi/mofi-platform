@@ -33,6 +33,35 @@ class TransactionApiTest extends TestCase
         return route('api.v1.transactions.store', $portfolio);
     }
 
+    public function test_export_filters_rows_and_rejects_another_owner(): void
+    {
+        $portfolio = $this->fixture();
+        $url = route('api.v1.transactions.export', $portfolio);
+        $response = $this->get($url.'?kind=BUY&symbol=MOFI&from=2026-08-20&to=2026-08-30');
+        $response->assertOk()->assertDownload('mofi-giao-dich.csv');
+        $csv = $response->streamedContent();
+        $this->assertStringStartsWith("\xEF\xBB\xBF", $csv);
+        $this->assertStringContainsString('BUY,MOFI', $csv);
+        $this->assertStringNotContainsString('DEPOSIT', $csv);
+        $this->assertStringNotContainsString('request_hash', $csv);
+        $this->getJson($url.'?kind=INVALID')->assertUnprocessable();
+        $this->getJson($url.'?from=2026-09-10&to=2026-09-01')->assertUnprocessable();
+        $this->actingAs(User::factory()->create())->getJson($url)->assertNotFound();
+    }
+
+    public function test_receipt_is_stable_when_replayed_and_hides_request_hash(): void
+    {
+        $portfolio = $this->fixture();
+        $payload = $this->payload();
+        $first = $this->postJson($this->url($portfolio), $payload)->assertCreated();
+        $second = $this->postJson($this->url($portfolio), $payload)->assertOk();
+        $first->assertJsonPath('receipt.replayed', false)->assertJsonMissingPath('data.request_hash');
+        $second->assertJsonPath('receipt.replayed', true)->assertJsonPath('receipt.id', $first->json('receipt.id'));
+        $this->assertSame($first->json('data.cash_delta'), $first->json('receipt.cash_delta'));
+        $this->assertSame($first->json('receipt.created_at'), $second->json('receipt.created_at'));
+        $this->assertDatabaseCount('transactions', 6);
+    }
+
     private function payload(string $kind = 'DEPOSIT'): array
     {
         $data = ['kind' => $kind, 'request_key' => (string) Str::uuid()];

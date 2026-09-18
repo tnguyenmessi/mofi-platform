@@ -132,6 +132,16 @@ Binance public API tiếp tục là ví dụ giá thật cho crypto, tách khỏ
 ### Tiến độ admin (18/09/2026)
 Đã có role user/admin, middleware, trang giám sát có phân trang, lọc tài khoản/mã tài sản, khóa/mở khóa và audit log; AdminSeeder riêng tạo tài khoản local. Mật khẩu admin được tạo ngẫu nhiên ở local, không đưa vào tài liệu public.
 
+### Cập nhật provider, vận hành và giao diện (18/09/2026)
+
+- [x] Tách `MarketDataProvider` khỏi controller; Binance crypto preview có timeout, cache, nhãn nguồn và hợp đồng provider để thay nguồn sau này.
+- [x] API giao dịch trả receipt gồm mã biên nhận, loại, ngày, giá trị gộp, phí, thuế, dòng tiền và trạng thái replay; không trả `request_hash`/`request_key`.
+- [x] Thêm endpoint xuất CSV giao dịch theo bộ lọc loại, mã và khoảng ngày; có UTF-8 BOM, owner-scoped và không chứa bí mật.
+- [x] Thêm `/admin/health` kiểm tra database, cache, danh mục demo và giá mô phỏng; chỉ admin được gọi và không lộ cấu hình.
+- [x] Tách `AlertEvaluationService` để giữ logic chuyển trạng thái false → true, bỏ qua giá thiếu và khóa rule trong transaction.
+- [x] Portfolio có bộ lọc mã đang nắm giữ; landing có pointer tilt nhẹ trên mockup, receipt animation và hover/pressed feedback, tôn trọng reduced-motion.
+- [x] Test suite sau đợt này: 84 pass, 1 skipped, 1.015 assertions; TypeScript, Pint và Vite build đạt.
+
 ## Rà soát chức năng lõi và các giới hạn còn lại
 
 - [x] Kiểm thử browser các luồng giao dịch Mua/Bán, Community và Copilot; feature suite kiểm tra toàn bộ menu private.

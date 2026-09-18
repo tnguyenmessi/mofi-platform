@@ -72,3 +72,16 @@ button:active,.button:active{transform:translateY(1px) scale(.985)}
 @keyframes content-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes progress-slide{from{background-position:0 0}to{background-position:200% 0}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.transaction-receipt{padding:22px;border:1px solid #a9ddc9;border-radius:16px;background:linear-gradient(135deg,#effbf5,#fff);color:#173c32;animation:receipt-in .25s ease-out}
+.transaction-receipt h3{margin:12px 0 6px;font-size:18px;letter-spacing:-.4px}
+.transaction-receipt p,.transaction-receipt small{color:#506b62;font-size:12px}
+.receipt-check{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;background:#17795e;color:white;border-radius:50%}
+.transaction-receipt dl{margin:16px 0;display:grid;gap:10px}.transaction-receipt dl div{display:flex;justify-content:space-between;gap:12px;font-size:13px}.transaction-receipt dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.holdings-search{display:flex;align-items:center;gap:16px;margin:8px 0 20px;font-size:13px;color:#62758a}.holdings-search input{border:1px solid #dce6ee;background:#f7fafc;border-radius:9px;padding:10px 14px;max-width:220px}
+.admin-health{padding:24px;background:#f1f7fb;border-radius:16px;margin:26px 0}.admin-health h2{margin-top:0}
+#health-result{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:13px}
+#product-preview{perspective:1200px}#product-preview .preview-device{transform:rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg));transition:transform .22s ease-out}
+.metric strong,td,.chart-value strong{font-variant-numeric:tabular-nums}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){.feature-card>svg,.tile-link svg{transition:transform .22s ease}.feature-card:hover>svg,.product-strip a:hover .tile-link svg{transform:translateX(5px)}.sidebar-nav a svg{transition:transform .22s ease}.sidebar-nav a:hover svg{transform:translateX(2px)}.button:active{transform:translateY(1px) scale(.985)}}
+@keyframes receipt-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.transaction-receipt{animation:none}#product-preview .preview-device{transform:none;transition:none}}
