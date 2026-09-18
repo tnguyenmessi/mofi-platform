@@ -44,8 +44,7 @@
 - Copilot is deterministic and read-only; it is not a trained or paid LLM.
 - Community posts and Copilot history are application-managed tables with direct Postgres API access revoked and RLS enabled on PostgreSQL.
 - GitHub Actions CI now checks Pint, PHPUnit, TypeScript and the production Vite build on pushes and pull requests.
-- Volume histogram, multi-tick advancement and partial-fill replay remain separate follow-up work; the current order lifecycle is complete for the demo ledger.
-- The candle strip is intentionally lightweight; a full volume histogram, interactive timeframe selector and tick advancement remain follow-up UI work.
+- The candle strip now includes a lightweight volume histogram. Multi-tick advancement, an interactive timeframe selector and partial-fill replay remain separate follow-up work.
 - Real market providers, LLM integration, CI/CD deployment and production monitoring remain separate follow-up work.
 
 ## Demo runbook

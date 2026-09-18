@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-type Candle = { time: string; open: string; high: string; low: string; close: string };
+type Candle = { time: string; open: string; high: string; low: string; close: string; volume?: string };
 type Props = { instrument?: Record<string, any> };
 
 export default function ReplayCandles({ instrument }: Props) {
@@ -22,6 +22,7 @@ export default function ReplayCandles({ instrument }: Props) {
     const max = Math.max(...values, 1);
     const min = Math.min(...values, 0);
     const range = max - min || 1;
+    const maxVolume = Math.max(...points.map((point) => Number(point.volume || 0)), 1);
 
     return <section className="panel replay-panel">
         <div className="panel-head"><h2>Biểu đồ {instrument.symbol} · nến ngày</h2><span className="badge">Mô phỏng</span></div>
@@ -30,6 +31,7 @@ export default function ReplayCandles({ instrument }: Props) {
             {points.map((point) => <div className="candle" key={point.time} title={`${point.time} · Đóng cửa ${point.close}`}>
                 <i style={{ height: `${Math.max(8, (Number(point.high) - Number(point.low)) / range * 100)}%` }} />
                 <b className={Number(point.close) >= Number(point.open) ? 'up' : 'down'} style={{ bottom: `${(Number(point.low) - min) / range * 100}%`, height: `${Math.max(3, Math.abs(Number(point.close) - Number(point.open)) / range * 100)}%` }} />
+                <em style={{ height: `${Math.max(4, Number(point.volume || 0) / maxVolume * 28)}px` }} />
             </div>)}
         </div>}
     </section>;
