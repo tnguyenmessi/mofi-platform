@@ -21,6 +21,14 @@ class DashboardController extends Controller
         $user = $request->user();
         $portfolio = $user->portfolio()->firstOrCreate(['user_id' => $user->id], ['name' => 'Danh mục VND của tôi', 'currency' => 'VND']);
         $page = $request->path();
+        if ($page === 'transactions') {
+            $request->validate([
+                'kind' => ['nullable', 'in:DEPOSIT,WITHDRAW,BUY,SELL,DIVIDEND'],
+                'symbol' => ['nullable', 'string', 'max:20'],
+                'from' => ['nullable', 'date_format:Y-m-d'],
+                'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            ]);
+        }
         $dashboard = $page === 'dashboard';
         $marketPages = $dashboard || in_array($page, ['transactions', 'market', 'watchlist', 'alerts', 'notifications'], true);
         $goalsPages = $dashboard || in_array($page, ['goals', 'copilot'], true);
@@ -37,10 +45,24 @@ class DashboardController extends Controller
             return Instrument::with(['marketPrices' => fn ($q) => $q->where('price_date', '<=', config('demo.simulation_date'))->where('is_demo', true)->where('source', 'demo')->orderByDesc('price_date')->limit(30)])->orderBy('id')->get()->toArray();
         }) : [];
 
+        $transactionQuery = $portfolio->transactions()->with('instrument')->orderByDesc('trade_date')->orderByDesc('id');
+        if ($request->filled('kind') && in_array($request->string('kind')->toString(), ['DEPOSIT', 'WITHDRAW', 'BUY', 'SELL', 'DIVIDEND'], true)) {
+            $transactionQuery->where('kind', $request->string('kind')->toString());
+        }
+        if ($request->filled('symbol')) {
+            $transactionQuery->whereHas('instrument', fn ($query) => $query->where('symbol', 'like', '%'.$request->string('symbol')->toString().'%'));
+        }
+        if ($request->filled('from')) {
+            $transactionQuery->whereDate('trade_date', '>=', $request->date('from'));
+        }
+        if ($request->filled('to')) {
+            $transactionQuery->whereDate('trade_date', '<=', $request->date('to'));
+        }
+
         return Inertia::render('Workspace', [
             'page' => $request->path(), 'user' => $user->only('id', 'name', 'email'),
             'summary' => $summaryData, 'market' => $market,
-            'transactions' => $page === 'transactions' ? $portfolio->transactions()->with('instrument')->orderByDesc('id')->paginate(20)->withQueryString() : ['data' => [], 'current_page' => 1, 'last_page' => 1],
+            'transactions' => $page === 'transactions' ? $transactionQuery->paginate(20)->withQueryString() : ['data' => [], 'current_page' => 1, 'last_page' => 1],
             'goals' => $goalsPages ? $user->goals()->orderBy('id')->get() : [], 'assets' => $assetsPages ? $user->manualAssets()->get() : [],
             'watchlist' => $marketPages ? WatchlistItem::where('user_id', $user->id)->get() : [],
             'tasks' => $tasksPages ? Task::where('user_id', $user->id)->orderBy('id')->get() : [],

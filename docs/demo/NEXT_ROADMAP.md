@@ -324,3 +324,10 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - Kiểm tra dependency graph trong manifest production: JS ban đầu của workspace giảm từ khoảng 805 KB xuống 441 KB, gzip từ khoảng 239 KB xuống 133 KB. Đây là dung lượng asset, không phải số đo TTFB hay tốc độ truy vấn DB.
 - Trang market đã được kiểm tra trên browser: trạng thái chờ được thay bằng 4 sparkline, không có warning/error trong lần kiểm tra. TypeScript và build thành công; build không còn chunk trên 500 KB.
 - Chart vẫn dùng chung một chunk lazy; chưa tách riêng thư viện theo từng loại biểu đồ. Landing vẫn tải chart của bản minh họa theo cách hiện có.
+
+### Hoàn thiện luồng lịch sử và bàn giao (18/09/2026)
+
+- [x] Lịch sử giao dịch có bộ lọc loại, mã tài sản, từ ngày và đến ngày; query được validate ở server và giữ phân trang.
+- [x] Mục tiêu hiển thị hạn hoàn thành và số tiền cần thêm mỗi tháng khi có ngày dự kiến.
+- [x] Tạo `DELIVERY.md` với phạm vi demo, kịch bản trình bày, lệnh chạy và kết quả kiểm thử.
+- [x] Full suite sau các thay đổi: 75 tests, 74 passed, 1 skipped; focused workspace: 12 passed.

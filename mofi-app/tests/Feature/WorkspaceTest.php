@@ -61,6 +61,27 @@ class WorkspaceTest extends TestCase
             ->has('goals', 0)->has('alerts', 0)->has('learning', 0)->has('transactions.data', 5));
     }
 
+    public function test_transaction_history_filters_by_kind_symbol_and_date(): void
+    {
+        config(['demo.enabled' => true, 'demo.login_password' => 'test-only-demo-password']);
+        $this->seed(DemoDataSeeder::class);
+        $user = User::where('email', 'demo@mofi.local')->firstOrFail();
+
+        $this->actingAs($user)->get('/transactions?kind=BUY&symbol=MOFI&from=2026-08-20&to=2026-08-30')
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('transactions.data', 1)
+                ->where('transactions.data.0.kind', 'BUY')
+                ->where('transactions.data.0.instrument.symbol', 'MOFI'));
+    }
+
+    public function test_transaction_history_rejects_invalid_filter_values(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get('/transactions?kind=INVALID&from=not-a-date')
+            ->assertSessionHasErrors(['kind', 'from']);
+    }
+
     public function test_register_normalizes_email_creates_empty_portfolio_and_rejects_duplicate(): void
     {
         $this->post('/register', ['name' => 'Người thử', 'email' => ' New@Example.com ', 'password' => 'secure-test-password', 'password_confirmation' => 'secure-test-password'])->assertRedirect('/dashboard');
