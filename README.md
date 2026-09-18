@@ -43,3 +43,40 @@ MOFI is a personal finance and investment platform inspired by the provided land
 The Laravel skeleton is in `mofi-app/`; the MOFI application features and React/Inertia setup are not implemented yet. Use `mofi-app/.env.example` as the application template, not the historical root template. Never commit `.env` or credentials.
 
 On 17 September 2026, a read-only PDO PostgreSQL connection using the local configuration and required TLS succeeded, with zero tables in the public schema. Laravel integration, table access controls, migrations, demo seed and CI remain implementation tasks. No real financial activity occurs in the demo.
+
+## Cấu trúc hiện tại
+
+- `mofi-app/`: mã nguồn duy nhất của ứng dụng Laravel (backend, React/Inertia, migrations, seeders, tests).
+- `docs/`: tài liệu yêu cầu, use case, database, API, quy trình demo và roadmap.
+- `.env.example`: mẫu cấu hình; `.env` thật không được commit.
+
+Ứng dụng dùng kiến trúc Laravel MVC + service layer: Controller nhận request, Form Request xác thực, Policy/middleware phân quyền, Service xử lý nghiệp vụ tài chính, Eloquent Model truy cập PostgreSQL/Supabase, React/Inertia hiển thị giao diện. Đây là modular monolith, phù hợp demo và có thể tách API/worker khi mở rộng.
+
+## Tự chạy demo trên máy
+
+Yêu cầu PHP 8.4+, Composer, Node.js 20+ và PostgreSQL/Supabase.
+
+```powershell
+cd mofi-app
+Copy-Item .env.example .env
+composer install
+php artisan key:generate
+# điền thông tin PostgreSQL/Supabase vào .env
+php artisan migrate --seed
+npm install
+npm run build
+php artisan serve
+```
+
+Mở `http://127.0.0.1:8000/`. Đăng nhập bằng tài khoản demo trong file local `mofi-app/.local-demo-credentials.md` (file này bị git ignore). Admin dùng `/admin`. Khi phát triển giao diện, chạy thêm terminal thứ hai: `npm run dev`.
+
+Kiểm tra trước khi push:
+
+```powershell
+php vendor/bin/pint --dirty --format agent
+php -d extension=pdo_sqlite vendor/bin/phpunit --colors=never
+npx tsc --noEmit
+npm run build
+```
+
+Không dùng mật khẩu trong README, source code, screenshot hoặc commit. Nếu clone từ GitHub, cần tự tạo `.env` bằng thông tin Supabase của mình.
