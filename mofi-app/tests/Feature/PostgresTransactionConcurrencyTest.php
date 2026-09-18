@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Instrument;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\PortfolioSummary;
 use Database\Seeders\DemoDataSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -22,8 +23,14 @@ class PostgresTransactionConcurrencyTest extends TestCase
             'driver' => 'pgsql', 'host' => '127.0.0.1', 'port' => '55439',
             'database' => 'mofi_transaction_test', 'username' => 'mofi_test', 'password' => '',
             'charset' => 'utf8', 'prefix' => '', 'search_path' => 'public', 'sslmode' => 'disable',
+            'options' => [\PDO::ATTR_EMULATE_PREPARES => getenv('MOFI_PG_EMULATE_PREPARES') === '1'],
         ], 'demo.enabled' => true, 'demo.login_password' => 'test-only-demo-password']);
         DB::purge('pgsql');
+        $note = "Giao dịch 'thử'; -- \\ ?";
+        $bound = DB::selectOne('select cast(? as text) as note, cast(? as numeric(24,8)) as amount, cast(? as boolean) as enabled', [$note, '1234567890123456.12345678', true]);
+        $this->assertSame($note, $bound->note);
+        $this->assertSame('1234567890123456.12345678', $bound->amount);
+        $this->assertTrue($bound->enabled);
         $this->artisan('migrate:fresh', ['--force' => true])->assertExitCode(0);
         $this->seed(DemoDataSeeder::class);
         $user = User::where('email', 'demo@mofi.local')->firstOrFail();
@@ -36,7 +43,7 @@ class PostgresTransactionConcurrencyTest extends TestCase
         sort($results);
         $this->assertSame([201, 422], $results);
         $this->assertSame(2, Transaction::where('kind', 'SELL')->count());
-        $summary = app(\App\Services\PortfolioSummary::class)->forPortfolio($portfolio);
+        $summary = app(PortfolioSummary::class)->forPortfolio($portfolio);
         $this->assertSame('50.00000000', $summary['holdings'][0]['quantity']);
 
         $deposit = ['kind' => 'DEPOSIT', 'gross_amount' => '1000', 'request_key' => (string) Str::uuid()];
@@ -56,7 +63,8 @@ $app = require 'bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 config(['database.default'=>'pgsql','database.connections.pgsql'=>[
 'driver'=>'pgsql','host'=>'127.0.0.1','port'=>'55439','database'=>'mofi_transaction_test',
-'username'=>'mofi_test','password'=>'','charset'=>'utf8','prefix'=>'','search_path'=>'public','sslmode'=>'disable']]);
+'username'=>'mofi_test','password'=>'','charset'=>'utf8','prefix'=>'','search_path'=>'public','sslmode'=>'disable',
+'options'=>[PDO::ATTR_EMULATE_PREPARES=>getenv('MOFI_PG_EMULATE_PREPARES')==='1']]]);
 Illuminate\Support\Facades\DB::purge('pgsql');
 try {
 $result = app(App\Services\RecordTransaction::class)->handle(App\Models\User::findOrFail($argv[2]), App\Models\Portfolio::findOrFail($argv[1]), json_decode($argv[3],true,512,JSON_THROW_ON_ERROR));

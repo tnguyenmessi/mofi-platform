@@ -223,7 +223,7 @@ MOFI chưa phải website chứng khoán thực tế. Đã có mô hình danh m�
 
 ### P2 — Hiệu năng và vận hành
 
-1. Chuyển Supabase sang connection pooler.
+1. Đo direct và Session pooler; chọn endpoint theo kết quả thực tế (máy hiện tại giữ direct).
 2. Tách props theo từng trang bằng Inertia partial reload/lazy props.
 3. Cache market data dùng chung; cache summary có invalidation sau giao dịch.
 4. Lazy-load chart và code-split bundle React lớn.
@@ -268,7 +268,7 @@ Sau khi duyệt, triển khai theo P0 trước để ổn định luồng lõi, 
 - [x] Tách truy vấn workspace theo trang; trang giao dịch không tải goals/assets/alerts/learning không cần thiết.
 - [x] Trang không cần định giá đầy đủ dùng summary rút gọn.
 - [x] Cập nhật test để phân biệt trang cần summary đầy đủ và trang chỉ cần dữ liệu riêng.
-- [ ] Độ trễ phiên browser vẫn khoảng 10 giây; cần chuyển Supabase sang connection pooler và đo lại sau khi đổi endpoint.
+- [ ] Chưa nghiệm thu độ trễ browser; đo riêng backend và so sánh endpoint trước khi thay cấu hình.
 
 ### Kiểm chứng sau tối ưu theo trang
 
@@ -278,3 +278,25 @@ Sau khi duyệt, triển khai theo P0 trước để ổn định luồng lõi, 
 - Kiểm tra: 71 test pass, 1 skipped; TypeScript và build thành công. Bundle lớn vẫn cần tách.
 - Pooler chưa được áp dụng. Cần lấy endpoint Session pooler thật từ Supabase, kiểm tra TLS và đo so sánh trước khi thay .env.
 - Các số đo khoảng 10 giây từ công cụ browser trước đây chưa tách được overhead công cụ khỏi TTFB. Chưa đủ bằng chứng kết luận nguyên nhân là database; chưa nghiệm thu mục tiêu tốc độ.
+
+### Đo PostgreSQL và áp dụng cấu hình (18/09/2026)
+
+- Direct: kết nối mới khoảng 2,96–3,06 giây; `select 1` khoảng 0,86–0,89 giây. Session pooler: kết nối 3,00–3,16 giây; truy vấn 1,00–1,02 giây. Giữ direct và TLS, không đổi endpoint theo phỏng đoán.
+- Trên cùng kết nối direct, truy vấn có tham số giảm từ khoảng 875 ms xuống 292 ms khi bật PDO emulated prepares. Vẫn truyền bindings qua PDO, không nối dữ liệu người dùng vào SQL.
+- Tính summary không cache: 11.309 ms → 5.577 ms; kết quả hai chế độ giống nhau.
+- Đã bật `DB_EMULATE_PREPARES=true` trong `.env` cục bộ và xóa config cache. Có thể hoàn tác bằng `false` rồi chạy `php artisan config:clear`. Mặc định repository vẫn `false`.
+
+| Luồng backend, cache rỗng | Native prepares | Emulated prepares |
+| --- | ---: | ---: |
+| Giao dịch | 10.957 ms | 5.223 ms |
+| Tổng quan | 19.447 ms | 8.356 ms |
+| Thị trường | 7.651 ms | 4.019 ms |
+
+Phương pháp: gọi controller thật với user demo, cache array rỗng và kết nối mới cho mỗi trang. Mỗi ô là một mẫu; gồm đọc user và tải props, chưa gồm HTTP middleware, render React, tải tài nguyên hay network của trình duyệt. Đây không phải p50/p95 hoặc thời gian tải trang hoàn chỉnh. Số liệu cho thấy cải thiện, chưa đạt mục tiêu phản hồi nhanh.
+
+Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (một mẫu localhost). Trang công khai vẫn chậm, nên tối ưu PostgreSQL chưa giải quyết toàn bộ độ trễ; cần tách tiếp thời gian bootstrap/server và middleware.
+
+- Kiểm thử PostgreSQL riêng tại localhost:55439 chạy thành công ở cả hai chế độ: Unicode, dấu nháy/backslash trong binding, decimal chính xác, boolean, bán đồng thời và chống gửi trùng (16 assertions mỗi chế độ). Chỉ database thử nghiệm bị reset; không reset Supabase.
+- Toàn bộ suite: 71 pass, 1 skip (test PostgreSQL opt-in đã chạy riêng), 849 assertions. Pint thành công.
+- Tiếp theo: đo HTTP có đăng nhập và submit trên tài khoản thử riêng; giảm truy vấn trùng; kiểm tra invalidation cache sau commit/admin; tách bundle chart. Nếu triển khai online, đặt backend gần vùng database và đo lại.
+- P0 kiểm thử browser toàn bộ và P1 nâng cấp giao diện vẫn còn; chưa đánh dấu hoàn thành toàn roadmap.

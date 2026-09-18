@@ -74,7 +74,7 @@ Mở `http://127.0.0.1:8000/`. Đăng nhập bằng tài khoản demo trong file
 
 Nếu `composer` chưa có trong PATH, cài Composer rồi mở lại PowerShell trước khi chạy các lệnh trên.
 
-Nếu workspace vẫn chậm khi dùng Supabase, mở Supabase Dashboard → Connect → Session pooler và thay `DB_HOST`, `DB_PORT`, `DB_USERNAME` trong file `.env` theo chuỗi kết nối do Supabase cấp. Không tự đoán region hoặc commit các giá trị này vào Git.
+Nếu workspace vẫn chậm khi dùng Supabase, đo kết nối và truy vấn trước khi đổi endpoint. Thử nghiệm ngày 18/09 cho thấy Session pooler chậm hơn kết nối trực tiếp trên máy hiện tại, nên vẫn giữ direct + TLS. Cấu hình tùy chọn `DB_EMULATE_PREPARES=true` giảm lượt trao đổi PostgreSQL và đã được bật trong `.env` cục bộ sau kiểm thử; `.env.example` vẫn mặc định `false` để môi trường khác đo trước khi bật. Ứng dụng vẫn dùng tham số truy vấn qua PDO. Không commit `.env` hoặc thông tin đăng nhập. Xem số đo và giới hạn trong `docs/demo/NEXT_ROADMAP.md`.
 
 Kiểm tra trước khi push:
 
