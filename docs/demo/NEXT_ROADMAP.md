@@ -332,3 +332,4 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - [x] Tạo `DELIVERY.md` với phạm vi demo, kịch bản trình bày, lệnh chạy và kết quả kiểm thử.
 - [x] Full suite sau các thay đổi: 75 tests, 74 passed, 1 skipped; focused workspace: 12 passed.
 - [x] Admin có tìm kiếm/lọc tài khoản theo tên/email/trạng thái và tìm mã tài sản theo mã/tên; phân trang tiếp tục giữ nguyên.
+- [x] Goal card hiển thị hạn, trạng thái quá hạn/hoàn thành và số tiền cần bổ sung mỗi tháng nếu có ngày dự kiến.
