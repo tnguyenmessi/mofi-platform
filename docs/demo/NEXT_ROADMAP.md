@@ -367,3 +367,21 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - Migration bảo vệ hai bảng mới đã áp dụng lên Supabase: xác minh RLS bật, anon/authenticated không có quyền SELECT trực tiếp.
 - Sửa form mẫu chiến lược để giá trị input đổi đồng bộ khi chọn Thận trọng/Tăng trưởng.
 - Kiểm thử workspace: 14 pass; TypeScript và build thành công. Bản demo đã đủ điều kiện nghiệm thu; các mở rộng dài hạn được ghi rõ là ngoài phạm vi.
+
+## Đề xuất màn hình giao dịch theo thời gian (chưa triển khai)
+
+Màn hình hiện tại là sổ ghi giao dịch mô phỏng, chưa phải hệ thống đặt và khớp lệnh. Không cần API thật để xây trải nghiệm paper trading có biểu đồ nến và lệnh chờ.
+
+1. Giao diện: chọn mã, giá hiện tại, biểu đồ nến OHLC và volume, khung 1 phút/5 phút/1 giờ, bảng giá bid/ask mô phỏng, form Mua/Bán, lệnh mở và lịch sử khớp. Nhãn mô phỏng hiển thị trên cả biểu đồ và phiếu lệnh.
+2. Dữ liệu: tạo phiên replay từ fixture OHLC có timestamp, seed cố định để tái hiện. Chỉ server quyết định tick hiện tại; client polling lấy dữ liệu. Không để refresh trang hoặc giờ trên máy khách làm đổi kết quả.
+3. Backend: bảng orders tách khỏi transactions. Lệnh có trạng thái OPEN/FILLED/CANCELLED/REJECTED; lưu mã, chiều mua/bán, số lượng, loại market/limit, limit price, thời điểm tạo và khớp. Chỉ lệnh khớp mới tạo transaction; không ghi giao dịch hai lần.
+4. Sức mua: tính available cash = cash trừ tiền giữ cho lệnh mua đang mở (gồm phí); available quantity = holdings trừ số lượng giữ cho lệnh bán. Hủy lệnh giải phóng phần giữ. Thao tác đặt, khớp và hủy cùng khóa portfolio/order để tránh race.
+5. Khớp mô phỏng: market mua theo ask/bán theo bid tick hợp lệ tiếp theo; limit mua khi ask <= limit, limit bán khi bid >= limit. Không khớp dựa vào dữ liệu tương lai hoặc nến đã chạy trước lúc đặt. Bản đầu chỉ khớp toàn bộ; chưa giả lập thanh khoản thật hoặc partial fill.
+6. An toàn: server tính giá và phí bằng decimal, idempotency khi đặt lệnh, unique execution theo order, rollback nếu ghi sổ lỗi, skip tick cũ/thiếu giá. Gắn nguồn, phiên mô phỏng và timestamp vào receipt để giải thích được kết quả.
+7. Nghiệm thu: limit chưa đạt giữ OPEN; đạt giá chỉ khớp một lần; hai lệnh không dùng chung tiền đã giữ; hủy/khớp đồng thời cho đúng một kết quả; retry/reload không trùng; user khác không xem/hủy được lệnh; chart không tràn màn hình.
+
+API thị trường thật chỉ cần khi muốn chart theo giá thực tế. Giao dịch thật cần thêm API broker, tài khoản được cấp quyền và quy trình vận hành riêng. Ưu tiên demo: replay fixture + chart + lệnh limit trước, không nối broker.
+
+### Sửa layout giao dịch
+
+Đã sửa flex sizing của dashboard, min-width của grid/form và chuyển bộ lọc sang grid hai cột. Kiểm tra browser ở 1366px và 1920px: nội dung bắt đầu sau sidebar 220px, không tràn ngang tài liệu, các bộ lọc nằm trong panel. Vite build đạt.
