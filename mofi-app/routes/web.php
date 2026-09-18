@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LiveMarketController;
@@ -24,6 +25,7 @@ Route::post('/login', [AuthController::class, 'store'])->middleware('throttle:5,
 Route::post('/register', [AuthController::class, 'register'])->middleware(['guest', 'throttle:5,1'])->name('register');
 Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
 Route::get('/api/v1/market/live', LiveMarketController::class)->middleware('throttle:20,1')->name('api.v1.market.live');
+Route::get('/admin', AdminController::class)->middleware(['auth', 'admin'])->name('admin.dashboard');
 
 Route::get('/register', fn () => view('auth', ['register' => true]))->middleware('guest')->name('register.create');
 Route::middleware('auth')->group(function () {

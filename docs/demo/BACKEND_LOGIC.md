@@ -67,3 +67,13 @@ Dịch các giao dịch theo `trade_date`, sau đó theo `id`:
 6. Kiểm tra màn hình 360px, 768px và desktop.
 7. Chạy Pint, PHPUnit SQLite, PostgreSQL concurrency test và Vite build.
 8. Chỉ sau khi checklist đạt mới tạo bản release/demo presentation.
+
+## Admin · cập nhật triển khai
+
+- `/admin` yêu cầu đăng nhập và `role=admin`; user thường nhận 403.
+- Trang quản trị hiện chỉ đọc: tài khoản phân trang, mã tài sản và số bản ghi giá. Chưa có khóa user, sửa giá hoặc audit log.
+- Role không nằm trong fillable của User; register/settings không nhận quyền từ client.
+- `AdminSeeder` chạy riêng với `DEMO_ENABLED=true`, `DEMO_ADMIN_PASSWORD` tối thiểu 16 ký tự, khác mật khẩu user demo và database.
+- Seeder không nâng quyền tài khoản thường có cùng email và không đổi mật khẩu admin đã tồn tại.
+- Đã áp dụng migration role và tạo admin trên DB demo. Thông tin đăng nhập nằm trong `mofi-app/.local-demo-credentials.md` bị Git ignore.
+- Admin dùng `/login` rồi mở `/admin`; không dùng tài khoản quản trị để trình diễn giao dịch.

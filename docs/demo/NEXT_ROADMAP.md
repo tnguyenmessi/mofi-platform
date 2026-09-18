@@ -128,3 +128,6 @@ Binance public API tiếp tục là ví dụ giá thật cho crypto, tách khỏ
 - Admin route bị từ chối với user thường.
 - LLM hoặc provider ngoài bị timeout vẫn không làm hỏng dashboard.
 - Không có credential trong Git, frontend bundle, screenshot hoặc tài liệu public.
+
+### Tiến độ admin (18/09/2026)
+Đã có role user/admin, middleware, trang giám sát chỉ đọc với phân trang và AdminSeeder riêng. Chưa triển khai CRUD/khóa tài khoản/audit log; các mục này vẫn thuộc P2. Mật khẩu admin được tạo ngẫu nhiên ở local, không đưa vào tài liệu public.
