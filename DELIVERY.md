@@ -19,7 +19,7 @@
 
 ## Verification completed
 
-- Full PHPUnit: 94 tests, 93 passed, 1 skipped with the bundled SQLite extension enabled; the opt-in local PostgreSQL concurrency test is run separately.
+- Full PHPUnit: 95 tests, 94 passed, 1 skipped with the bundled SQLite extension enabled; the opt-in local PostgreSQL concurrency test is run separately.
 - TypeScript check and Vite production build pass.
 - PostgreSQL concurrency test passes with native and emulated prepares.
 - Browser QA passed for a disposable account: deposit 2,000,000 VND, buy 10 MOFI, sell 4 MOFI; history, fees, taxes and balances updated after reload.
