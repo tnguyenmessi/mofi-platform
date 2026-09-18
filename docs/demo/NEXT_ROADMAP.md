@@ -145,3 +145,111 @@ Binance public API tiếp tục là ví dụ giá thật cho crypto, tách khỏ
 - [ ] Strategy/Simulation cần lưu kịch bản, CAGR, drawdown và benchmark rõ ràng.
 - [ ] Copilot cần lịch sử hội thoại, phạm vi dữ liệu và câu trả lời lỗi/timeout.
 - [ ] Thêm E2E browser test cho auth, menu, giao dịch và thao tác admin trước demo.
+
+# Kế hoạch nâng cấp MOFI theo ảnh mẫu
+
+## 1. Đánh giá hiện trạng
+
+MOFI hiện đã có nền tảng backend và các luồng tài chính mô phỏng: đăng ký/đăng nhập, dashboard, portfolio, giao dịch, mục tiêu, tài sản thủ công, watchlist, cảnh báo, học đầu tư, Copilot rule-based, admin và PostgreSQL/Supabase. So với ảnh mẫu, sản phẩm hiện đạt mức prototype chức năng.
+
+So với ảnh dashboard mẫu, phần còn thiếu là mật độ module, card KPI, mục tiêu dạng tiến độ, market widget, AI panel, watchlist có sparkline, cảnh báo, task list và bốn khu vực Strategy Studio/Investment Lab/Học đầu tư/Cộng đồng được trình bày như sản phẩm hoàn thiện. So với ảnh landing mẫu, cần nâng hero, mockup laptop/điện thoại, CTA, thanh số liệu, nhóm sáu sản phẩm, AI band, mục tiêu cuộc sống, testimonial và footer.
+
+MOFI chưa phải website chứng khoán thực tế. Đã có mô hình danh mục, giá vốn, lãi/lỗ, giao dịch mua/bán mô phỏng, biểu đồ và watchlist; chưa có sổ lệnh, bid/ask, khớp lệnh, tài khoản công ty chứng khoán, KYC, 2FA, tiền thật, phí sàn thật hay dữ liệu cổ phiếu Việt Nam realtime.
+
+## 2. Mục tiêu nghiệm thu
+
+- Desktop 1366px là kích thước nghiệm thu chính; mobile chỉ cần không tràn ngang.
+- Dashboard và landing có cảm giác giống ảnh mẫu nhưng vẫn ghi rõ dữ liệu mô phỏng.
+- Mọi menu đều có trang, trạng thái loading, trạng thái rỗng và trạng thái lỗi.
+- Luồng Mua/Bán không còn màn hình trắng; giao dịch hợp lệ cập nhật lịch sử và tổng tài sản.
+- Điều hướng workspace sau lần tải đầu mục tiêu dưới 1 giây khi cache còn hiệu lực.
+- Không đưa credential, dữ liệu cá nhân hoặc số liệu demo chưa xác minh vào tài liệu public.
+
+## 3. Lộ trình triển khai theo thứ tự
+
+### P0 — Ổn định lõi trước khi làm đẹp
+
+1. Kiểm thử browser có đăng nhập cho toàn bộ menu.
+2. Kiểm tra Giao dịch: Nạp, Rút, Mua, Bán, Cổ tức, giao dịch lặp và lỗi kết nối.
+3. Sửa mọi response làm React trắng màn hình; giữ Error Boundary và thông báo lỗi rõ ràng.
+4. Thêm preview giao dịch: mã, số lượng, giá, phí, thuế, tiền thay đổi và số dư sau giao dịch.
+5. Kiểm tra quyền User A/B, admin, portfolio ownership và dữ liệu Supabase RLS.
+6. Thêm E2E test cho đăng nhập, chuyển menu, chọn Mua, submit giao dịch và admin.
+
+### P1 — Design system và dashboard theo ảnh đầu tiên
+
+1. Chuẩn hóa màu: nền xanh rất nhạt, navy sidebar, xanh dương chính, xanh mint tăng trưởng, đỏ/cam giảm giá.
+2. Chuẩn hóa typography, radius, shadow, border, spacing, icon và trạng thái focus.
+3. Tạo component dùng lại: `MetricCard`, `ChartCard`, `TableCard`, `ProgressCard`, `Badge`, `Toast`, `Modal`, `Skeleton`, `EmptyState`.
+4. Dashboard gồm sidebar, topbar search/notification/avatar, hero greeting, bốn KPI card, allocation, goals, market, Copilot, portfolio chart, watchlist, alerts, tasks và bốn product card.
+5. Thêm tabs 1D/1W/1M/3M/1Y/All cho biểu đồ danh mục.
+6. Thêm tooltip, legend, trục, đơn vị tiền và ngày dữ liệu cho mọi biểu đồ.
+
+### P1 — Landing theo ảnh thứ hai
+
+1. Navbar rõ CTA đăng nhập/đăng ký.
+2. Hero headline nhiều tầng màu, CTA kép và mockup dashboard laptop/điện thoại.
+3. Thanh thống kê có nhãn dữ liệu demo.
+4. Sáu sản phẩm: Tra cứu, Quản lý tài sản, Chiến lược, Sàn tập ảo, Học đầu tư, AI Copilot.
+5. AI Copilot band nền navy.
+6. Mục tiêu cuộc sống: mua nhà, học cho con, nghỉ hưu, mua xe, quỹ dự phòng, tự do tài chính.
+7. Persona/testimonial dùng nhãn minh họa, không trình bày như đánh giá thật.
+8. CTA cuối trang và footer đầy đủ.
+
+### P1 — Chuyển động và tương tác
+
+- Stagger reveal khi dashboard tải.
+- Count-up cho KPI.
+- Vẽ chart dần khi vào viewport.
+- Progress bar chạy tới giá trị thật.
+- Hover card nâng nhẹ và đổi border.
+- Sidebar active có chuyển động trượt nhẹ.
+- Modal fade/scale, toast slide-in, button loading/success/error.
+- AI Copilot có typing effect cho câu trả lời mô phỏng.
+- Tabs, tooltip và dropdown chuyển cảnh mượt.
+- Landing có scroll reveal và parallax rất nhẹ.
+- Tôn trọng `prefers-reduced-motion`; không dùng animation gây khó đọc ở bảng giao dịch.
+
+### P2 — Chức năng giống nền tảng đầu tư hơn
+
+1. Portfolio: lọc mã/ngành, lịch sử giao dịch, giá vốn, giá hiện tại, lãi/lỗ từng mã, tỷ trọng và benchmark.
+2. Market: trang chi tiết mã, tìm kiếm, nhóm Việt Nam/thế giới/hàng hóa/crypto, watchlist, chart nhiều khoảng thời gian và trạng thái nguồn.
+3. Strategy Studio: tạo chiến lược, tỷ trọng, lưu chiến lược, CAGR, drawdown, Sharpe mô phỏng.
+4. Investment Lab: kịch bản VN-Index giảm, lãi suất tăng, crypto giảm, tăng tiền mặt; so sánh trước/sau.
+5. Goals: mẫu mục tiêu, số tiền cần tiết kiệm mỗi tháng, tiến độ và ngày dự kiến hoàn thành.
+6. Learning: bài học, quiz ngắn, tiến độ và badge.
+7. Community: strategy card, theo dõi và xếp hạng mô phỏng; không sao chép giao dịch thật.
+8. Copilot: lịch sử hội thoại, câu hỏi gợi ý, phạm vi dữ liệu, timeout/error state và disclaimer.
+
+### P2 — Hiệu năng và vận hành
+
+1. Chuyển Supabase sang connection pooler.
+2. Tách props theo từng trang bằng Inertia partial reload/lazy props.
+3. Cache market data dùng chung; cache summary có invalidation sau giao dịch.
+4. Lazy-load chart và code-split bundle React lớn.
+5. Thêm index cho giao dịch, market prices, watchlist và alerts.
+6. Dùng pagination cho bảng dài.
+7. Thêm skeleton để người dùng không thấy màn hình trắng.
+8. Đo p50/p95 cho landing, login, dashboard, market và giao dịch.
+9. Production build, nén ảnh, logging lỗi và health check.
+
+### P3 — Admin và dữ liệu thật có kiểm soát
+
+- Admin filter/search user, trạng thái, lần đăng nhập cuối.
+- Audit log filter/export CSV.
+- Thống kê lỗi API, cache và thời gian phản hồi.
+- Interface `MarketDataProvider`, giữ provider fixture mặc định.
+- Thêm provider cổ phiếu thật chỉ sau khi có nguồn hợp pháp, rate limit, SLA và cờ cấu hình.
+- Crypto Binance tiếp tục tách khỏi danh mục cổ phiếu VND.
+- AI dùng provider interface/RAG/tool đọc-only; chưa train model riêng trong giai đoạn demo.
+
+## 4. Tiêu chí duyệt trước khi code tiếp
+
+- Chốt dashboard desktop theo ảnh đầu tiên.
+- Chốt landing theo ảnh thứ hai.
+- Chọn thứ tự P0 → P1 → P2.
+- Xác nhận dữ liệu cổ phiếu Việt Nam tiếp tục là fixture mô phỏng.
+- Xác nhận Copilot vẫn rule-based trong bản demo.
+- Xác nhận giao dịch vẫn là tiền ảo, không kết nối tiền thật.
+
+Sau khi duyệt, triển khai theo P0 trước để ổn định luồng lõi, sau đó làm design system và dashboard trước khi mở rộng Strategy Studio, Investment Lab và Community.
