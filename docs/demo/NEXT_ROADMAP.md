@@ -385,3 +385,26 @@ API thị trường thật chỉ cần khi muốn chart theo giá thực tế. G
 ### Sửa layout giao dịch
 
 Đã sửa flex sizing của dashboard, min-width của grid/form và chuyển bộ lọc sang grid hai cột. Kiểm tra browser ở 1366px và 1920px: nội dung bắt đầu sau sidebar 220px, không tràn ngang tài liệu, các bộ lọc nằm trong panel. Vite build đạt.
+
+## Định hướng dashboard theo hai ảnh tham chiếu
+
+Nên theo đúng cấu trúc hai ảnh: landing để kể câu chuyện sản phẩm, dashboard để chứng minh dữ liệu và thao tác. Không nên biến mọi card thành chức năng độc lập thiếu logic; mỗi khu vực cần gắn với dữ liệu hoặc trạng thái rõ ràng.
+
+### Dashboard sau đăng nhập
+
+- Sidebar có thể thu gọn/mở rộng trên desktop bằng nút cạnh logo; khi thu gọn chỉ giữ icon, khi mở lại trả đầy đủ nhãn. Mobile vẫn dùng drawer.
+- Header giữ tìm kiếm, thông báo, avatar và trạng thái tài khoản.
+- Hero giữ lời chào, ngày mô phỏng và ảnh nền; KPI lấy từ cùng summary backend.
+- Các vùng theo ảnh: allocation, goals, market index, Copilot, portfolio chart, watchlist, alerts, tasks và bốn module Strategy/Simulation/Learn/Community.
+- Card chỉ hiển thị số liệu có nguồn; chức năng chưa có provider phải dùng nhãn “mô phỏng” hoặc “đang phát triển”.
+
+### Những chức năng nên nâng cấp tiếp
+
+1. Paper trading: bảng mã, chart OHLC/nến, bid/ask mô phỏng, lệnh market/limit, lệnh mở, khớp/hủy và lịch sử execution.
+2. Portfolio: lọc theo mã, hiệu suất 1D/1W/1M/3M/1Y, benchmark fixture và drill-down cost basis.
+3. Goals: số tiền cần mỗi tháng, trạng thái quá hạn, ưu tiên mục tiêu và biểu đồ tiến độ.
+4. Market: tab Việt Nam/thế giới/hàng hóa/crypto, quote detail, volume và nguồn dữ liệu.
+5. Admin: dashboard health, audit filter/export, thống kê lỗi provider và cache hit rate.
+6. Copilot: giữ rule-based ở demo; về sau mới thêm provider AI đọc-only với timeout, chi phí và guardrail.
+
+Paper trading không yêu cầu API thật. API thật chỉ cần cho quote thực tế; khớp lệnh thật còn cần broker API, credential, compliance và cơ chế đối soát riêng.
