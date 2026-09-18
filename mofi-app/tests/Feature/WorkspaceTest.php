@@ -14,14 +14,35 @@ use App\Models\WatchlistItem;
 use Database\Seeders\DemoDataSeeder;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class WorkspaceTest extends TestCase
 {
     use LazilyRefreshDatabase;
+
+    public function test_market_survives_file_cache_round_trip_with_class_unserialization_disabled(): void
+    {
+        $path = storage_path('framework/cache/test-'.Str::uuid());
+        config(['cache.default' => 'market_test', 'cache.stores.market_test' => ['driver' => 'file', 'path' => $path], 'cache.serializable_classes' => false]);
+        $user = User::factory()->create();
+        $instrument = Instrument::factory()->create(['tradable' => true]);
+        MarketPrice::factory()->create(['instrument_id' => $instrument->id, 'price_date' => config('demo.simulation_date'), 'is_demo' => true, 'source' => 'demo']);
+        try {
+            $this->actingAs($user);
+            foreach (['/market', '/transactions', '/dashboard'] as $route) {
+                $this->get($route)->assertOk()->assertInertia(fn (Assert $page) => $page
+                    ->has('market', 1)->where('market.0.id', $instrument->id)->has('market.0.market_prices', 1));
+            }
+        } finally {
+            Cache::purge('market_test');
+            File::deleteDirectory($path);
+        }
+    }
 
     public function test_page_specific_props_preserve_copilot_goals_and_alerts_notification_workspace(): void
     {

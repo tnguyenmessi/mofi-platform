@@ -300,3 +300,14 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - Toàn bộ suite: 71 pass, 1 skip (test PostgreSQL opt-in đã chạy riêng), 849 assertions. Pint thành công.
 - Tiếp theo: đo HTTP có đăng nhập và submit trên tài khoản thử riêng; giảm truy vấn trùng; kiểm tra invalidation cache sau commit/admin; tách bundle chart. Nếu triển khai online, đặt backend gần vùng database và đo lại.
 - P0 kiểm thử browser toàn bộ và P1 nâng cấp giao diện vẫn còn; chưa đánh dấu hoàn thành toàn roadmap.
+
+### Sửa lỗi cache và giao dịch trên browser (18/09/2026)
+
+- [x] Cache market chuyển từ object Eloquent sang mảng thuần, tương thích cấu hình không cho unserialize class; thêm test round-trip với file cache.
+- [x] Cache market được version hóa và invalidation sau commit khi admin bật/tắt tài sản.
+- [x] Invalidation summary chạy sau commit để giao dịch rollback không xóa cache hợp lệ.
+- [x] Đăng xuất từ Inertia dùng full navigation về trang chủ, tránh hiển thị trang công khai trong hộp lỗi.
+- [x] Tách bootstrap Inertia khỏi component Workspace để tránh gọi `createRoot` hai lần khi HMR/navigation.
+- [x] Browser QA bằng tài khoản riêng: nạp 2.000.000 VND ảo, mua 10 MOFI, bán 4 MOFI; số dư, phí, thuế và lịch sử hiển thị đúng sau reload.
+- [x] Focused tests: 53 pass, 639 assertions; full suite trước đó 74 pass, 1 skipped sau thay đổi frontend/cache. TypeScript và production build thành công.
+- [ ] Chưa làm giao dịch tiền thật hoặc kết nối chứng khoán thật; mọi giao dịch browser vẫn là mô phỏng.

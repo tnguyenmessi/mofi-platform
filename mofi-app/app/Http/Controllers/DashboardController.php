@@ -33,9 +33,9 @@ class DashboardController extends Controller
         $summaryData = $fullSummaryPages
             ? Cache::remember(PortfolioSummary::cacheKey($portfolio), now()->addSeconds(15), fn () => $summary->forPortfolio($portfolio))
             : ['portfolio_id' => $portfolio->id, 'as_of' => config('demo.simulation_date'), 'cash' => $page === 'transactions' ? (string) $portfolio->transactions()->sum('cash_delta') : '0.00000000', 'holdings' => [], 'history' => [], 'status' => 'partial', 'total_assets' => null, 'securities_value' => null, 'total_pnl' => null];
-        $market = $marketPages ? Cache::remember('mofi.demo.market.'.config('demo.simulation_date'), now()->addMinutes(2), function () {
-            return Instrument::with(['marketPrices' => fn ($q) => $q->where('price_date', '<=', config('demo.simulation_date'))->where('is_demo', true)->where('source', 'demo')->orderByDesc('price_date')->limit(30)])->orderBy('id')->get();
-        }) : collect();
+        $market = $marketPages ? Cache::remember('mofi.demo.market.v2.'.config('demo.simulation_date'), now()->addMinutes(2), function () {
+            return Instrument::with(['marketPrices' => fn ($q) => $q->where('price_date', '<=', config('demo.simulation_date'))->where('is_demo', true)->where('source', 'demo')->orderByDesc('price_date')->limit(30)])->orderBy('id')->get()->toArray();
+        }) : [];
 
         return Inertia::render('Workspace', [
             'page' => $request->path(), 'user' => $user->only('id', 'name', 'email'),

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\PortfolioSummary;
 use Database\Seeders\DemoDataSeeder;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -61,7 +62,10 @@ class TransactionApiTest extends TestCase
     {
         $portfolio = $this->fixture();
         $payload = $this->payload($kind);
+        $cacheKey = PortfolioSummary::cacheKey($portfolio);
+        Cache::put($cacheKey, ['stale' => true], 15);
         $response = $this->postJson($this->url($portfolio), $payload);
+        $this->assertFalse(Cache::has($cacheKey));
         $response->assertCreated()->assertJsonPath('replayed', false)
             ->assertJsonPath('summary.cash', $cash)->assertJsonPath('summary.total_assets', $assets)
             ->assertJsonPath('summary.total_pnl', $profit)->assertJsonPath('data.trade_date', '2026-09-15');
@@ -167,9 +171,12 @@ class TransactionApiTest extends TestCase
     public function test_failure_while_building_summary_rolls_back_receipt(): void
     {
         $portfolio = $this->fixture();
+        $cacheKey = PortfolioSummary::cacheKey($portfolio);
+        Cache::put($cacheKey, ['existing' => true], 15);
         $this->mock(PortfolioSummary::class)->shouldReceive('forPortfolio')->once()->andThrow(new \RuntimeException('Calculation unavailable'));
         $this->postJson($this->url($portfolio), $this->payload())->assertServerError();
         $this->assertDatabaseCount('transactions', 5);
+        $this->assertSame(['existing' => true], Cache::get($cacheKey));
     }
 
     public function test_non_tradable_instrument_is_rejected(): void

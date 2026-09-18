@@ -5,12 +5,27 @@ namespace Tests\Feature;
 use App\Models\Instrument;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class AdminOperationsTest extends TestCase
 {
     use LazilyRefreshDatabase;
+
+    public function test_inertia_logout_performs_full_navigation_to_public_home(): void
+    {
+        $member = User::factory()->create();
+        $this->actingAs($member)->withHeader('X-Inertia', 'true')->post('/logout')
+            ->assertStatus(409)->assertHeader('X-Inertia-Location', '/');
+        $this->assertGuest();
+    }
+
+    public function test_plain_logout_redirects_to_public_home(): void
+    {
+        $this->actingAs(User::factory()->create())->post('/logout')->assertRedirect('/');
+        $this->assertGuest();
+    }
 
     public function test_lock_unlock_are_persisted_and_repeated_submission_is_safe(): void
     {
@@ -58,10 +73,14 @@ class AdminOperationsTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $instrument = Instrument::factory()->create(['tradable' => true]);
         $url = '/admin/instruments/'.$instrument->id.'/toggle';
+        $marketKey = 'mofi.demo.market.v2.'.config('demo.simulation_date');
+        Cache::put($marketKey, ['stale' => true], 120);
         $this->actingAs($admin)->post($url, ['tradable' => 'invalid'])->assertSessionHasErrors('tradable');
         $this->assertTrue($instrument->fresh()->tradable);
+        $this->assertTrue(Cache::has($marketKey));
         $this->post($url, ['tradable' => 0])->assertRedirect();
         $this->assertFalse($instrument->fresh()->tradable);
+        $this->assertFalse(Cache::has($marketKey));
         $this->assertDatabaseHas('admin_audit_logs', ['action' => 'instrument.disabled', 'target_id' => $instrument->id]);
         $this->post($url, ['tradable' => 1])->assertRedirect();
         $this->assertTrue($instrument->fresh()->tradable);

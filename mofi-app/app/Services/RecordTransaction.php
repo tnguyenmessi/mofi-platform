@@ -76,7 +76,7 @@ class RecordTransaction
                 'user_id' => $user->id, 'request_key' => $key, 'request_hash' => $hash,
             ]));
 
-            PortfolioSummary::forget($locked);
+            DB::afterCommit(fn () => PortfolioSummary::forget($locked));
 
             return ['transaction' => $transaction, 'replayed' => false, 'summary' => $this->summary->forPortfolio($locked)];
         }, 3);

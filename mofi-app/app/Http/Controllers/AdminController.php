@@ -7,6 +7,7 @@ use App\Models\MarketPrice;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -49,6 +50,7 @@ class AdminController extends Controller
             }
             $target->update(['tradable' => $request->boolean('tradable')]);
             $this->audit($request, $target->tradable ? 'instrument.enabled' : 'instrument.disabled', 'instrument', $target->id);
+            DB::afterCommit(fn () => Cache::forget('mofi.demo.market.v2.'.config('demo.simulation_date')));
         });
 
         return back()->with('status', $request->boolean('tradable') ? 'Đã bật giao dịch.' : 'Đã tắt giao dịch.');
