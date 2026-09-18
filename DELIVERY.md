@@ -19,11 +19,12 @@
 
 ## Verification completed
 
-- Full PHPUnit: 74 passed, 1 skipped (the opt-in local PostgreSQL concurrency test is run separately).
+- Full PHPUnit: 77 passed, 1 skipped (the opt-in local PostgreSQL concurrency test is run separately).
 - TypeScript check and Vite production build pass.
 - PostgreSQL concurrency test passes with native and emulated prepares.
 - Browser QA passed for a disposable account: deposit 2,000,000 VND, buy 10 MOFI, sell 4 MOFI; history, fees, taxes and balances updated after reload.
 - Browser QA passed for market lazy chart loading and transaction filters.
+- Admin search/filter and goal deadline/monthly-contribution checks have automated coverage.
 - Production workspace JavaScript initial payload is about 441 KB (about 133 KB gzip); charts load on demand.
 
 ## Known boundaries
