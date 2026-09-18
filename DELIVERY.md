@@ -27,7 +27,8 @@
 - Admin search/filter and goal deadline/monthly-contribution checks have automated coverage.
 - Transaction receipts, owner-scoped CSV export, admin health checks, market provider abstraction and alert service extraction are covered by the latest suite.
 - Landing mockup pointer interaction, transaction receipt animation and holdings search were added with reduced-motion support.
-- Paper trading P0 now has orders, reservations, executions, market/limit matching, cancel/replay and a Market order form; all values remain simulated.
+- Paper trading P0 now has orders, reservations, executions, market/limit matching, cancel/replay, order status filtering and a Market order form; all values remain simulated.
+- Portfolio summary exposes `reserved_cash`, `available_cash`, `reserved_quantity` and `available_quantity` so pending orders are visible in the same server-calculated snapshot.
 - Strategy Studio can save user-scoped allocation records; Investment Lab can save user-scoped shock scenarios without changing portfolio transactions.
 - Community now supports user-scoped post creation and deletion, with shared read-only browsing and owner checks.
 - MOFI Copilot now saves rule-based question history per user; answers remain deterministic and carry the simulation disclaimer.
@@ -41,6 +42,7 @@
 - Copilot is deterministic and read-only; it is not a trained or paid LLM.
 - Community posts and Copilot history are application-managed tables with direct Postgres API access revoked and RLS enabled on PostgreSQL.
 - GitHub Actions CI now checks Pint, PHPUnit, TypeScript and the production Vite build on pushes and pull requests.
+- OHLC candle replay, volume, simulated bid/ask depth and partial-fill replay remain separate follow-up work; the current order lifecycle is complete for the demo ledger.
 - Real market providers, LLM integration, CI/CD deployment and production monitoring remain separate follow-up work.
 
 ## Demo runbook
