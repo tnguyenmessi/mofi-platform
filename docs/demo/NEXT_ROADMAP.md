@@ -311,3 +311,9 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - [x] Browser QA bằng tài khoản riêng: nạp 2.000.000 VND ảo, mua 10 MOFI, bán 4 MOFI; số dư, phí, thuế và lịch sử hiển thị đúng sau reload.
 - [x] Focused tests: 53 pass, 639 assertions; full suite trước đó 74 pass, 1 skipped sau thay đổi frontend/cache. TypeScript và production build thành công.
 - [ ] Chưa làm giao dịch tiền thật hoặc kết nối chứng khoán thật; mọi giao dịch browser vẫn là mô phỏng.
+
+### Ổn định biểu đồ frontend (18/09/2026)
+
+- [x] Thêm kích thước tối thiểu cho biểu đồ danh mục, phân bổ, sparkline và crypto chart để Recharts không khởi tạo với kích thước 0 khi Inertia chuyển trang.
+- [x] TypeScript, production build và full PHPUnit đều đạt sau thay đổi; bundle workspace hiện khoảng 227 KB (gzip khoảng 67 KB), còn chunk runtime Recharts khoảng 578 KB (gzip khoảng 172 KB).
+- [ ] Code splitting Recharts tiếp tục ở P2; cần tách chart theo trang bằng dynamic import và đo tải thực tế trước khi thay đổi lớn hơn.
