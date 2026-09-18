@@ -70,6 +70,8 @@ npm run build
 php artisan serve
 ```
 
+Nếu PowerShell báo `php is not recognized`, máy này đang cài PHP nhưng chưa thêm vào PATH. Dùng đường dẫn PHP đầy đủ đã ghi ở trên, hoặc mở terminal mới sau khi thêm thư mục PHP vào PATH. Hai tiến trình cần chạy khi phát triển là Laravel tại `127.0.0.1:8000` và Vite tại `127.0.0.1:5173`; nếu cổng đã được dùng, không mở thêm server thứ hai.
+
 Mở `http://127.0.0.1:8000/`. Đăng nhập bằng tài khoản demo trong file local `mofi-app/.local-demo-credentials.md` (file này bị git ignore). Admin dùng `/admin`. Khi phát triển giao diện, chạy thêm terminal thứ hai: `npm run dev`.
 
 Nếu `composer` chưa có trong PATH, cài Composer rồi mở lại PowerShell trước khi chạy các lệnh trên.

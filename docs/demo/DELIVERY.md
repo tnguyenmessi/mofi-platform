@@ -57,9 +57,9 @@ Lệnh thực thi sẽ được xác minh khi code: composer install, tạo .env
 | Phạm vi demo và database rút gọn | Đã viết trong SPECIFICATION/DATABASE; là baseline triển khai, không phải approval của sếp |
 | GitHub repo và scaffold Laravel | Có, đã push từ các đợt trước |
 | Mật khẩu local | Đã cấu hình .env bị Git ignore; không có trong tài liệu |
-| PostgreSQL direct connection | PDO SELECT read-only qua TLS thành công; public có 0 bảng |
-| Laravel-level connection và migrations | Chưa kiểm chứng Laravel DB facade; chưa chạy migrations |
-| React/Inertia/TS và giao diện | Chưa cài/chưa triển khai |
+| PostgreSQL direct connection | PDO/Laravel PostgreSQL qua TLS đã kiểm chứng; migration demo đã chạy |
+| Laravel-level connection và migrations | Đã chạy migration status, seed và feature suite |
+| React/Inertia/TS và giao diện | Đã triển khai; TypeScript và Vite production build đạt |
 | Seed demo, CI và hosting | Seed và CI đã tạo; chưa hosting public |
 | Supabase grants/Data API | Đã audit/revoke direct API và bật RLS cho bảng private; chưa expose client trực tiếp |
 
