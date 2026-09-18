@@ -116,8 +116,10 @@ class WorkspaceController extends Controller
         } elseif (str_contains($question, 'mục tiêu') || str_contains($question, 'tiến độ')) {
             $goals = $user->goals()->get();
             $answer = $goals->isEmpty() ? 'Bạn chưa có mục tiêu tài chính.' : $goals->map(fn ($goal) => $goal->name.': '.number_format(min(100, (float) $goal->saved_amount * 100 / max(1, (float) $goal->target_amount)), 2, ',', '.').'%')->implode('; ');
-        } else {
+        } elseif (str_contains($question, 'tóm tắt') || str_contains($question, 'tong quan') || str_contains($question, 'danh mục')) {
             $answer = 'Danh mục có '.count($summary['holdings']).' mã, tiền mặt '.number_format((float) $summary['cash'], 0, ',', '.').' đồng và lãi/lỗ tổng '.number_format((float) ($summary['total_pnl'] ?? 0), 0, ',', '.').' đồng. Đây là tóm tắt theo quy tắc từ dữ liệu mô phỏng, không phải khuyến nghị mua bán.';
+        } else {
+            $answer = 'Câu hỏi này chưa nằm trong nhóm phân tích demo. Hãy thử “Tóm tắt danh mục”, “Tỷ trọng tiền mặt” hoặc “Tiến độ mục tiêu”. MOFI chưa kết nối mô hình AI.';
         }
         CopilotQuestion::create(['user_id' => $user->id, 'question' => trim($data['question']), 'answer' => $answer, 'source' => 'rules']);
 

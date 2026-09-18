@@ -154,7 +154,9 @@ class WorkspaceTest extends TestCase
         $this->get('/copilot')->assertInertia(fn (Assert $page) => $page->where('copilotHistory.0.id', $entry->id));
         $this->actingAs($other)->get('/copilot')->assertInertia(fn (Assert $page) => $page->has('copilotHistory', 0));
         $this->post('/workspace/copilot', ['question' => str_repeat('a', 501)])->assertSessionHasErrors('question');
-        $this->assertDatabaseCount('copilot_questions', 1);
+        $this->post('/workspace/copilot', ['question' => 'Dự đoán mã nào sẽ tăng?'])->assertSessionHasNoErrors();
+        $this->assertStringContainsString('chưa nằm trong nhóm', CopilotQuestion::latest('id')->value('answer'));
+        $this->assertDatabaseCount('copilot_questions', 2);
     }
 
     public function test_register_normalizes_email_creates_empty_portfolio_and_rejects_duplicate(): void

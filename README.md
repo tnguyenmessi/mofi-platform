@@ -40,9 +40,9 @@ MOFI is a personal finance and investment platform inspired by the provided land
 
 ## Local setup
 
-The Laravel skeleton is in `mofi-app/`; the MOFI application features and React/Inertia setup are not implemented yet. Use `mofi-app/.env.example` as the application template, not the historical root template. Never commit `.env` or credentials.
+The Laravel application, React/Inertia interface, migrations, demo seed and tests are in `mofi-app/`. Use `mofi-app/.env.example` as the application template, not the historical root template. Never commit `.env` or credentials.
 
-On 17 September 2026, a read-only PDO PostgreSQL connection using the local configuration and required TLS succeeded, with zero tables in the public schema. Laravel integration, table access controls, migrations, demo seed and CI remain implementation tasks. No real financial activity occurs in the demo.
+On 18 September 2026, the PostgreSQL/TLS connection, migrations, application table access controls, demo seed, CI checks and browser demo flows were verified. No real financial activity occurs in the demo.
 
 ## Cấu trúc hiện tại
 

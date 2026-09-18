@@ -132,19 +132,19 @@ Binance public API tiếp tục là ví dụ giá thật cho crypto, tách khỏ
 ### Tiến độ admin (18/09/2026)
 Đã có role user/admin, middleware, trang giám sát chỉ đọc với phân trang và AdminSeeder riêng. Chưa triển khai CRUD/khóa tài khoản/audit log; các mục này vẫn thuộc P2. Mật khẩu admin được tạo ngẫu nhiên ở local, không đưa vào tài liệu public.
 
-## Rà soát chức năng lõi và lỗi cần xử lý
+## Rà soát chức năng lõi và các giới hạn còn lại
 
-- [ ] Kiểm thử trình duyệt có đăng nhập cho toàn bộ menu, đặc biệt giao dịch Mua/Bán.
-- [ ] Hoàn thiện trạng thái lỗi khi Inertia nhận response thiếu hoặc lỗi mạng; không để màn hình trắng.
-- [ ] Tách props theo từng trang bằng partial reload/lazy props để chuyển trang không tải lại toàn bộ workspace.
+- [x] Kiểm thử browser các luồng giao dịch Mua/Bán, Community và Copilot; feature suite kiểm tra toàn bộ menu private.
+- [x] Có ErrorBoundary, error banner, loading progress và trạng thái lỗi cho market/transaction; không để response thiếu làm màn hình trắng.
+- [x] Tách props theo từng trang, cache market/summary và lazy-load chart; không tải module nặng khi không cần.
 - [ ] Dùng Supabase connection pooler và đo p50/p95 thời gian phản hồi.
-- [ ] Thêm xác nhận giao dịch, xem trước phí/thuế và số dư sau giao dịch.
-- [ ] Bổ sung validation khi không có mã tradable, giá thiếu hoặc dữ liệu market lỗi.
-- [ ] Portfolio cần có lọc theo mã/thời gian, lịch sử giá và hiệu suất so sánh.
-- [ ] Market cần trang chi tiết mã, tìm kiếm, watchlist và trạng thái nguồn dữ liệu.
-- [ ] Strategy/Simulation cần lưu kịch bản, CAGR, drawdown và benchmark rõ ràng.
-- [ ] Copilot cần lịch sử hội thoại, phạm vi dữ liệu và câu trả lời lỗi/timeout.
-- [ ] Thêm E2E browser test cho auth, menu, giao dịch và thao tác admin trước demo.
+- [x] Giao dịch có xem trước phí/thuế, số dư dự kiến, idempotency retry và lịch sử immutable.
+- [x] Validation khi không có mã tradable, giá thiếu hoặc dữ liệu market lỗi có thông báo rõ.
+- [ ] Portfolio lọc theo mã/thời gian, lịch sử giá và hiệu suất so sánh — để sau bản demo lõi.
+- [x] Market có tìm kiếm, watchlist, sparkline 30 ngày và nhãn nguồn dữ liệu mô phỏng; trang detail realtime để sau.
+- [x] Strategy/Simulation lưu chiến lược và shock scenario; CAGR, drawdown và benchmark thật để sau khi có provider lịch sử.
+- [x] Copilot có lịch sử user-scoped, phạm vi deterministic và câu trả lời unsupported; không có timeout provider vì chưa gọi LLM.
+- [ ] E2E browser automation đầy đủ — hiện dùng browser QA thủ công kết hợp feature tests; sẽ thêm khi chốt runner hosting.
 
 # Kế hoạch nâng cấp MOFI theo ảnh mẫu
 
@@ -345,6 +345,8 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - [x] Migration `2026_09_18_150000_create_community_and_copilot_tables` đã chạy ở môi trường local và bật RLS/revoke cho PostgreSQL.
 - [x] Full PHPUnit sau thay đổi: 81 passed, 1 skipped, 987 assertions; TypeScript và Vite production build đạt.
 - [ ] Chưa tích hợp provider giá cổ phiếu thật hoặc LLM trả phí; đây là giới hạn cố ý của bản demo.
+- [x] GitHub Actions workflow kiểm tra format PHP, PHPUnit, TypeScript và Vite build trên pull request/push.
+- [x] Workspace có focus ring, skip link, reduced-motion support, hover/pressed states và staggered page reveal.
 
 ### Kiểm chứng tính đúng của kịch bản
 

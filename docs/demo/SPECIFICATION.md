@@ -30,7 +30,7 @@ Luồng: browser -> Laravel session/CSRF/policy -> service tính toán -> Postgr
 | D12 | `/strategies` | Mô phỏng | Chọn chiến lược mẫu, mở chi tiết và chart kết quả cố định; không chạy backtest thật |
 | D13 | `/simulation` | Mô phỏng tính toán | Chọn kịch bản giá giảm 10/20%; tính q*price*(1-rate) trên vị thế hiện tại, không ghi vào tài sản |
 | D14 | `/learn` | Nội dung mẫu + lưu tiến độ | 3 bài có nội dung ngắn, đọc/đánh dấu xong; tiến độ reload giữ nguyên |
-| D15 | `/community` | Giới thiệu tương tác | Danh sách chiến lược/tác giả giả, mở chi tiết; không hứa follow lưu, đăng bài/chat nếu chưa làm |
+| D15 | `/community` | Hoạt động mô phỏng | Thành viên đăng bài, xem bài mới nhất và chỉ xóa được bài của mình; nội dung có nhãn không phải tư vấn đầu tư |
 
 Các page dùng sidebar/header chung, breadcrumb/title rõ, mobile menu hoạt động. Button không hỗ trợ thì disabled kèm lý do hoặc điều hướng trang giới thiệu; không để liên kết `#` làm người xem hiểu nhầm. Nút tìm kiếm mở tìm mã và danh sách route; không tìm ngôn ngữ tự nhiên toàn hệ thống.
 
@@ -58,7 +58,7 @@ Actor: thành viên. Tìm mã -> watch/unwatch -> tạo rule GTE/LTE giá -> “
 
 ### UC-D06 Copilot và các chức năng nâng cao
 
-Actor: thành viên. Bấm “Tóm tắt danh mục”, “Tỷ trọng”, “Tiến độ mục tiêu” -> trả lời deterministic bằng phép tính server cùng nguồn. Hỏi ngoài tập mẫu -> thông báo chưa hỗ trợ; không generate lời khuyên mua bán. Strategy detail có fixture tĩnh cùng nhãn. Simulation áp dụng shock giá lên q hiện tại, cash/manual giữ nguyên; không mutation DB. Bài học từ fixture versioned, completion keyed bằng lesson slug allowlist. Cộng đồng dùng personas giả không nhắn người thật.
+Actor: thành viên. Bấm “Tóm tắt danh mục”, “Tỷ trọng”, “Tiến độ mục tiêu” -> trả lời deterministic bằng phép tính server cùng nguồn. Câu hỏi tự do được lưu lịch sử theo user; ngoài nhóm hỗ trợ -> thông báo chưa hỗ trợ, không generate lời khuyên mua bán. Strategy detail có fixture tĩnh cùng nhãn. Simulation áp dụng shock giá lên q hiện tại, cash/manual giữ nguyên; không mutation DB. Bài học từ fixture versioned, completion keyed bằng lesson slug allowlist. Cộng đồng cho phép đăng/xóa bài theo owner, dùng nội dung mô phỏng không nhắn người thật.
 
 ## 5 Quy tắc demo phải giữ
 

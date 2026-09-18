@@ -40,11 +40,11 @@ Nếu chậm: giữ trang phụ có nội dung rõ ràng và trạng thái giớ
 | T13 | Build/backend suite/secret scan | PHP domain và feature tests, frontend build qua; .env không tracked; không credentials trong assets |
 | T14 | Supabase table permissions và deploy | Unauthenticated Data API không đọc dữ liệu; APP_DEBUG=false trên public URL; login/logout smoke |
 
-T01..T14 là ca dự kiến, chưa chạy vì chưa có tính năng. CI skeleton pass không có nghĩa các ca này pass. Chỉ báo hoàn thành theo bằng chứng command output/manual screenshot trong PR, không tự tick checklist theo tài liệu.
+T01..T14 là bộ ca kiểm tra bản demo. T01, T02, T03, T04, T05, T06, T08, T09, T10, T11, T12 và T13 đã có bằng chứng PHPUnit/build hoặc browser QA trong [DELIVERY.md](../../DELIVERY.md) và `tests/Feature`; T07 concurrency PostgreSQL chạy riêng theo cấu hình opt-in. T14 quyền Supabase đã được kiểm tra cho các bảng ứng dụng/planning/community/Copilot; hosting public và APP_DEBUG production vẫn chưa nghiệm thu vì bản demo chưa deploy.
 
 ## 4 Git và triển khai
 
-Source hiện ở `mofi-app/`. Docs ở `docs/demo/`, file Word ở `docs/word/`. Dùng feature branch khi bắt đầu code, commit nhỏ theo config/auth/data/UI/feature/test. PR template đã có; CI workflow chưa có, cần tạo với PHP8.4, Node24, Composer install/validate, Pint, tests với PostgreSQL test, npm ci/build và secret check. Chưa có branch protection đã xác minh, không tuyên bố đã bật.
+Source hiện ở `mofi-app/`. Docs ở `docs/demo/`, file Word ở `docs/word/`. Dùng feature branch và Conventional Commits. PR template và `.github/workflows/ci.yml` đã có; CI kiểm tra PHP 8.4, Composer, Pint, PHPUnit, Node 22, TypeScript và Vite build. Branch protection và hosting public chưa được bật/xác minh.
 
 Không dùng `.env` thật trên runner; CI có credential database test tạm. Không dùng lệnh setup có migrate --force trước khi chỉ rõ DB đích. Chỉ seed fake data. Database demo phải ghi rõ read/write demo account, không thu thập thông tin thật; không có payment/API tài chính thật.
 
@@ -60,7 +60,7 @@ Lệnh thực thi sẽ được xác minh khi code: composer install, tạo .env
 | PostgreSQL direct connection | PDO SELECT read-only qua TLS thành công; public có 0 bảng |
 | Laravel-level connection và migrations | Chưa kiểm chứng Laravel DB facade; chưa chạy migrations |
 | React/Inertia/TS và giao diện | Chưa cài/chưa triển khai |
-| Seed demo, CI và hosting | Chưa tạo; làm ở đợt code nền |
-| Supabase grants/Data API | Chưa audit/configure; phải kiểm tra trước expose demo |
+| Seed demo, CI và hosting | Seed và CI đã tạo; chưa hosting public |
+| Supabase grants/Data API | Đã audit/revoke direct API và bật RLS cho bảng private; chưa expose client trực tiếp |
 
 Các bước còn lại thuộc thực thi code nền và kiểm thử, không phải thiếu một vòng đặc tả dài hạn nữa. Không cần mật khẩu trong chat thêm lần nữa để viết tài liệu. Secret chỉ dùng server/local khi kết nối được ủy quyền.

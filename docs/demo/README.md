@@ -14,7 +14,7 @@ Hai file Word trong `docs/word/` là bản trình bày của nội dung này. N�
 
 - Giữ đầy đủ các khu vực trên landing và dashboard; mọi menu có trang hoặc trạng thái rõ ràng.
 - Dữ liệu người dùng, tiền, cổ phiếu, thị trường và cộng đồng đều là giả. Đăng nhập, lưu DB và tính danh mục là chức năng thật.
-- Laravel + React + TypeScript + Inertia + Tailwind; Recharts cho biểu đồ; PostgreSQL trên Supabase. React/Inertia chưa được cài ở thời điểm viết tài liệu.
+- Laravel 13 + React 19 + TypeScript + Inertia + Tailwind; Recharts cho biểu đồ; PostgreSQL trên Supabase.
 - Một portfolio VND mỗi user; cash tính từ lịch sử giao dịch; không nợ/margin/FX/chuyển nhiều account.
 - Giá theo bộ dữ liệu ngày mô phỏng cố định. Không mua API hoặc triển khai giao dịch tiền thật.
 - AI, Strategy Studio, Investment Lab và cộng đồng là demo có giới hạn, không phải dịch vụ sản xuất đã hoàn chỉnh.
@@ -22,6 +22,6 @@ Hai file Word trong `docs/word/` là bản trình bày của nội dung này. N�
 
 ## Trạng thái đã kiểm tra
 
-Ngày 17/09/2026: mật khẩu đã được đặt vào `.env` local bị Git ignore. Kết nối PDO PostgreSQL bằng thông số local và TLS `require` thành công; có 0 bảng trong schema `public`. Chưa boot/test query thông qua Laravel application, chưa kiểm tra toàn bộ grants/Data API, chưa chạy migration và chưa có bảng demo. Không có credential trong tài liệu.
+Ngày 18/09/2026: kết nối Laravel qua PDO PostgreSQL/TLS đã chạy, migration demo và các migration quyền/RLS đã áp dụng. Demo seed, browser QA, PHPUnit, TypeScript và production build đã được kiểm tra. Credential chỉ nằm trong `.env` local bị Git ignore.
 
-Repository có Laravel skeleton và templates issue/PR; chưa có CI workflow, giao diện MOFI, demo seed hoặc hosting demo. Các trạng thái này chỉ đổi khi có bằng chứng kiểm tra tương ứng, không đổi vì đã viết tài liệu.
+Repository có workflow CI cho Pint/PHPUnit/TypeScript/Vite build. Ứng dụng chưa có hosting production; bản demo chạy local/Supabase và không triển khai giao dịch tiền thật.
