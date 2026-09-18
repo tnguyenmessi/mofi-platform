@@ -13,6 +13,8 @@ class Order extends Model
 
     protected $fillable = ['user_id', 'portfolio_id', 'instrument_id', 'side', 'order_type', 'quantity', 'limit_price', 'filled_quantity', 'status', 'request_key', 'request_hash', 'filled_at', 'cancelled_at'];
 
+    protected $hidden = ['request_key', 'request_hash'];
+
     protected function casts(): array
     {
         return ['quantity' => 'decimal:8', 'limit_price' => 'decimal:8', 'filled_quantity' => 'decimal:8', 'filled_at' => 'datetime', 'cancelled_at' => 'datetime'];

@@ -51,6 +51,29 @@ class PaperTradingTest extends TestCase
         $this->assertDatabaseCount('transactions', 6);
     }
 
+    public function test_pending_buy_prevents_manual_withdrawal_of_reserved_money(): void
+    {
+        [, $portfolio, $instrument] = $this->fixture();
+        $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id))->assertCreated();
+        $this->postJson(route('api.v1.transactions.store', $portfolio), [
+            'request_key' => (string) Str::uuid(), 'kind' => 'WITHDRAW', 'gross_amount' => '14000000',
+        ])->assertUnprocessable();
+        $this->assertDatabaseCount('transactions', 5);
+    }
+
+    public function test_pending_sell_prevents_manual_sale_of_reserved_shares(): void
+    {
+        [, $portfolio, $instrument] = $this->fixture();
+        $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id, [
+            'side' => 'SELL', 'quantity' => '100', 'limit_price' => '130000',
+        ]))->assertCreated()->assertJsonPath('data.status', 'OPEN');
+        $this->postJson(route('api.v1.transactions.store', $portfolio), [
+            'request_key' => (string) Str::uuid(), 'kind' => 'SELL', 'instrument_id' => $instrument->id,
+            'quantity' => '60', 'unit_price' => '125000',
+        ])->assertUnprocessable();
+        $this->assertDatabaseCount('transactions', 5);
+    }
+
     public function test_limit_sell_requires_available_position_and_owner_scope(): void
     {
         [, $portfolio, $instrument] = $this->fixture();

@@ -419,4 +419,4 @@ Paper trading không yêu cầu API thật. API thật chỉ cần cho quote th�
 - [x] Test limit OPEN/reservation, market fill/replay, thiếu vị thế, cross-owner và cancel idempotent.
 - [x] Full suite sau phần lõi: 88 pass, 1 skipped; TypeScript, Pint và Vite build đạt.
 
-Phần chưa hoàn tất của plan là chart nến/volume, order book bid/ask, replay nhiều tick, partial fill và đưa KPI tiền đang giữ lên dashboard. Backend đã có bộ lọc trạng thái lệnh cùng các trường số dư khả dụng để UI dùng ở bước tiếp theo.
+Phần chưa hoàn tất của plan là volume histogram, order book bid/ask, replay nhiều tick và partial fill. Đã có OHLC replay endpoint, biểu đồ nến mô phỏng, KPI tiền giữ/khả dụng trên dashboard và các trường số dư tương ứng ở backend.

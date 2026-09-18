@@ -300,4 +300,15 @@ class WorkspaceTest extends TestCase
         Http::fake(['*' => Http::response(['bad' => 'response'], 200)]);
         $this->getJson('/api/v1/market/live')->assertStatus(502);
     }
+
+    public function test_demo_candle_endpoint_returns_ordered_ohlcv_fixture(): void
+    {
+        config(['demo.enabled' => true]);
+        $this->seed(DemoDataSeeder::class);
+        $instrument = Instrument::where('symbol', 'MOFI')->firstOrFail();
+
+        $this->getJson('/api/v1/instruments/'.$instrument->id.'/candles?days=7')->assertOk()
+            ->assertJsonPath('is_demo', true)->assertJsonPath('interval', '1d')->assertJsonCount(7, 'points')
+            ->assertJsonPath('points.0.source', 'demo_replay');
+    }
 }

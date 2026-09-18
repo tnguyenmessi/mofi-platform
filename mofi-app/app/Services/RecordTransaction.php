@@ -66,6 +66,16 @@ class RecordTransaction
                     };
                 }
             }
+            foreach ($locked->orders()->whereIn('status', ['OPEN', 'PARTIALLY_FILLED'])->with('reservation')->get() as $order) {
+                if ($order->reservation?->released_at !== null) {
+                    continue;
+                }
+                if ($order->side === 'BUY') {
+                    $cash = $cash->minus($order->reservation?->cash_amount ?? 0);
+                } elseif ($order->instrument_id === $payload['instrument_id']) {
+                    $quantity = $quantity->minus($order->reservation?->quantity ?? 0);
+                }
+            }
             if ($payload['kind'] === 'SELL' && $quantity->isLessThan($payload['quantity'])) {
                 $this->reject('quantity', 'Không đủ cổ phiếu để bán.');
             }

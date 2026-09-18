@@ -56,7 +56,7 @@ class PaperTradingService
             foreach ($locked->orders()->whereIn('status', ['OPEN', 'PARTIALLY_FILLED'])->with('reservation')->lockForUpdate()->get() as $open) {
                 if ($open->side === 'BUY') {
                     $reservedCash = $reservedCash->plus($open->reservation?->cash_amount ?? 0);
-                } else {
+                } elseif ($open->instrument_id === $instrument->id) {
                     $reservedQty = $reservedQty->plus($open->reservation?->quantity ?? 0);
                 }
             }
@@ -73,6 +73,7 @@ class PaperTradingService
             if ($fillable) {
                 $this->fill($order, $reservation, $instrument, BigDecimal::of($quote->close));
             }
+            DB::afterCommit(fn () => PortfolioSummary::forget($locked));
 
             return ['order' => $order->fresh(['instrument', 'reservation', 'execution']), 'replayed' => false, 'filled' => $fillable];
         }, 3);
@@ -83,11 +84,13 @@ class PaperTradingService
         Gate::forUser($user)->authorize('view', $order->portfolio);
 
         return DB::transaction(function () use ($order): Order {
+            $portfolio = Portfolio::whereKey($order->portfolio_id)->lockForUpdate()->firstOrFail();
             $order = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
             if ($order->status === 'OPEN') {
                 $order->update(['status' => 'CANCELLED', 'cancelled_at' => now()]);
                 $order->reservation?->update(['released_at' => now()]);
             }
+            DB::afterCommit(fn () => PortfolioSummary::forget($portfolio));
 
             return $order->fresh(['instrument', 'reservation', 'execution']);
         });
