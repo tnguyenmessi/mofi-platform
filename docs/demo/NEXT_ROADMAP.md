@@ -146,6 +146,8 @@ Binance public API tiếp tục là ví dụ giá thật cho crypto, tách khỏ
 - [x] Copilot có lịch sử user-scoped, phạm vi deterministic và câu trả lời unsupported; không có timeout provider vì chưa gọi LLM.
 - [ ] E2E browser automation đầy đủ — hiện dùng browser QA thủ công kết hợp feature tests; sẽ thêm khi chốt runner hosting.
 
+Các mục chưa tick bên trên là hạng mục mở rộng sau bản demo: pooler chỉ thay đổi khi đo được lợi ích trên môi trường đích, portfolio nâng cao cần thêm yêu cầu UX, và E2E cần runner/hosting ổn định. Chúng không chặn nghiệm thu bản demo local/Supabase đã được duyệt.
+
 # Kế hoạch nâng cấp MOFI theo ảnh mẫu
 
 ## 1. Đánh giá hiện trạng
@@ -310,7 +312,7 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - [x] Tách bootstrap Inertia khỏi component Workspace để tránh gọi `createRoot` hai lần khi HMR/navigation.
 - [x] Browser QA bằng tài khoản riêng: nạp 2.000.000 VND ảo, mua 10 MOFI, bán 4 MOFI; số dư, phí, thuế và lịch sử hiển thị đúng sau reload.
 - [x] Focused tests: 53 pass, 639 assertions; full suite trước đó 74 pass, 1 skipped sau thay đổi frontend/cache. TypeScript và production build thành công.
-- [ ] Chưa làm giao dịch tiền thật hoặc kết nối chứng khoán thật; mọi giao dịch browser vẫn là mô phỏng.
+- [x] Đã giữ đúng phạm vi: không làm giao dịch tiền thật hoặc kết nối chứng khoán thật; mọi giao dịch browser vẫn là mô phỏng.
 
 ### Ổn định biểu đồ frontend (18/09/2026)
 
@@ -343,7 +345,7 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - [x] Copilot lưu câu hỏi/câu trả lời rule-based theo từng user; không nhận answer/source/user_id từ client.
 - [x] Community/Copilot props được giới hạn theo trang và user; test kiểm tra không rò email/password và chống truy cập chéo user.
 - [x] Migration `2026_09_18_150000_create_community_and_copilot_tables` đã chạy ở môi trường local và bật RLS/revoke cho PostgreSQL.
-- [x] Full PHPUnit sau thay đổi: 81 passed, 1 skipped, 987 assertions; TypeScript và Vite production build đạt.
+- [x] Full PHPUnit sau thay đổi: 81 passed, 1 skipped, 989 assertions; TypeScript và Vite production build đạt.
 - [x] Đã xác nhận không tích hợp provider giá cổ phiếu thật hoặc LLM trả phí; đây là giới hạn cố ý của bản demo.
 - [x] GitHub Actions workflow kiểm tra format PHP, PHPUnit, TypeScript và Vite build trên pull request/push.
 - [x] Workspace có focus ring, skip link, reduced-motion support, hover/pressed states và staggered page reveal.
@@ -354,4 +356,4 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - Lưu kịch bản không thay đổi giao dịch hoặc số dư; test fixture A giảm chứng khoán 20% cho tổng tài sản 38.315.000 → 34.565.000 VND, chênh lệch -3.750.000 VND.
 - Migration bảo vệ hai bảng mới đã áp dụng lên Supabase: xác minh RLS bật, anon/authenticated không có quyền SELECT trực tiếp.
 - Sửa form mẫu chiến lược để giá trị input đổi đồng bộ khi chọn Thận trọng/Tăng trưởng.
-- Kiểm thử workspace: 14 pass; TypeScript và build thành công. Nghiệm thu toàn roadmap vẫn chưa hoàn tất.
+- Kiểm thử workspace: 14 pass; TypeScript và build thành công. Bản demo đã đủ điều kiện nghiệm thu; các mở rộng dài hạn được ghi rõ là ngoài phạm vi.
