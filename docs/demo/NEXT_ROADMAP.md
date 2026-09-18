@@ -408,3 +408,15 @@ Nên theo đúng cấu trúc hai ảnh: landing để kể câu chuyện sản p
 6. Copilot: giữ rule-based ở demo; về sau mới thêm provider AI đọc-only với timeout, chi phí và guardrail.
 
 Paper trading không yêu cầu API thật. API thật chỉ cần cho quote thực tế; khớp lệnh thật còn cần broker API, credential, compliance và cơ chế đối soát riêng.
+
+
+## Tiến độ triển khai paper trading (19/09/2026)
+
+- [x] Tạo bảng `orders`, `order_reservations`, `executions` trên PostgreSQL/Supabase và bật RLS/revoke cho Data API.
+- [x] Thêm `PaperTradingService`: giữ tiền/cổ phiếu, market/limit matching theo quote mô phỏng, execution một lần, transaction ledger và cancel.
+- [x] Thêm API list/create/cancel order, request key/hash và owner scope.
+- [x] Thêm form đặt lệnh mô phỏng vào `/market`, danh sách lệnh gần đây và nút hủy.
+- [x] Test limit OPEN/reservation, market fill/replay, thiếu vị thế, cross-owner và cancel idempotent.
+- [x] Full suite sau phần lõi: 88 pass, 1 skipped; TypeScript, Pint và Vite build đạt.
+
+Phần chưa hoàn tất của plan là chart nến/volume, order book bid/ask, replay nhiều tick, partial fill, filter order nâng cao và dashboard KPI tiền đang giữ.

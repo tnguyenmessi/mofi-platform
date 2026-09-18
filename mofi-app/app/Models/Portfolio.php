@@ -20,6 +20,11 @@ class Portfolio extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);

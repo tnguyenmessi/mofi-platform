@@ -68,6 +68,7 @@ class DashboardController extends Controller
             'page' => $request->path(), 'user' => $user->only('id', 'name', 'email'),
             'summary' => $summaryData, 'market' => $market,
             'transactions' => $page === 'transactions' ? $transactionQuery->paginate(20)->withQueryString() : ['data' => [], 'current_page' => 1, 'last_page' => 1],
+            'orders' => $marketPages ? $portfolio->orders()->with(['instrument', 'reservation', 'execution'])->latest('id')->limit(30)->get() : [],
             'goals' => $goalsPages ? $user->goals()->orderBy('id')->get() : [], 'assets' => $assetsPages ? $user->manualAssets()->get() : [],
             'watchlist' => $marketPages ? WatchlistItem::where('user_id', $user->id)->get() : [],
             'tasks' => $tasksPages ? Task::where('user_id', $user->id)->orderBy('id')->get() : [],

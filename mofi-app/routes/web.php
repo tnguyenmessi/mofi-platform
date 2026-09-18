@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LiveMarketController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PortfolioSummaryController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\WorkspaceController;
@@ -19,6 +20,9 @@ Route::get('/api/v1/portfolios/{portfolio}/transactions/export', [TransactionCon
     ->middleware(['auth', 'throttle:20,1'])->name('api.v1.transactions.export');
 Route::post('/api/v1/portfolios/{portfolio}/transactions', [TransactionController::class, 'store'])
     ->middleware(['auth', 'throttle:30,1'])->name('api.v1.transactions.store');
+Route::get('/api/v1/portfolios/{portfolio}/orders', [OrderController::class, 'index'])->middleware(['auth', 'throttle:60,1'])->name('api.v1.orders.index');
+Route::post('/api/v1/portfolios/{portfolio}/orders', [OrderController::class, 'store'])->middleware(['auth', 'throttle:30,1'])->name('api.v1.orders.store');
+Route::post('/api/v1/orders/{order}/cancel', [OrderController::class, 'cancel'])->middleware(['auth', 'throttle:30,1'])->name('api.v1.orders.cancel');
 
 Route::get('/', fn () => view('mofi', ['mode' => 'landing']))->name('home');
 Route::get('/dashboard', DashboardController::class)->middleware('auth')->name('dashboard');
