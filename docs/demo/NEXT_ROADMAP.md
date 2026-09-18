@@ -257,8 +257,8 @@ Sau khi duyệt, triển khai theo P0 trước để ổn định luồng lõi, 
 ### Cập nhật P0 (18/09/2026)
 
 - [x] Đã kiểm tra browser: đăng nhập demo và mở trang Giao dịch.
-- [x] Đã tái hiện và xử lý trạng thái chọn Mua; không còn crash trắng khi market rỗng.
+- [x] Đã chọn Mua thành công trong browser với dữ liệu demo hiện tại; chưa tái hiện được nguyên nhân lỗi trắng màn hình ban đầu.
 - [x] Đã thêm Error Boundary và trạng thái lỗi rõ ràng cho workspace.
 - [x] Đã thêm xem trước giá trị, phí, thuế và tổng thanh toán trước khi ghi giao dịch.
 - [x] Đã build frontend và chạy `70 passed, 1 skipped`.
-- [ ] Còn lại: kiểm thử submit Mua/Bán trong browser sau khi người dùng xác nhận demo fixture được phép ghi thêm giao dịch.
+- [ ] Còn lại: kiểm thử submit Mua/Bán trên tài khoản kiểm thử riêng; không cần thay đổi fixture A/B.

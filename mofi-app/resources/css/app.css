@@ -25,3 +25,30 @@
 @media(max-width:700px){.public-desktop .hero{grid-template-columns:1fr;padding-inline:20px}.preview-screen{height:285px}.public-desktop .stats{padding:0 20px}.products-section,.public-intelligence,.public-bottom{padding:45px 20px}.public-desktop .feature-grid,.public-bottom .quote-grid{grid-template-columns:1fr}.life-section{margin-inline:20px;grid-template-columns:1fr;padding:18px}.life-goals{grid-column:auto}.public-desktop .site-nav nav{display:none}.public-desktop .site-footer{padding-inline:20px}}
 .admin-top{display:flex;align-items:center;justify-content:space-between;gap:20px}.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px 0}.admin-stats div{background:#f3f8fc;border:1px solid var(--line);border-radius:10px;padding:15px}.admin-stats b,.admin-stats span{display:block}.admin-stats b{font-size:22px}.admin-stats span{font-size:10px;color:var(--muted);margin-top:5px}.admin-page h2{font-size:17px;margin:25px 0 10px}.admin-table{overflow:auto}.admin-table table{width:100%;border-collapse:collapse;font-size:11px}.admin-table th,.admin-table td{padding:10px 8px;border-bottom:1px solid #edf2f6;text-align:left;white-space:nowrap}.admin-table th{font-size:10px;color:var(--muted)}
 .transaction-preview{display:grid;gap:.35rem;margin:.75rem 0;padding:.85rem 1rem;border:1px solid #cfe1f2;border-radius:14px;background:#f5faff;color:#23425e}.transaction-preview strong{color:#087cf0}.error-boundary{border:1px solid #f0b7b7;background:#fff8f8}
+
+/* Desktop finance workspace: shared surfaces, readable figures and restrained motion. */
+:root{--surface:#fff;--navy:#10283f;--focus:#2684df;--panel-radius:14px;--motion-fast:180ms}
+.app-shell{background:radial-gradient(ellipse at 90% 0%,#dff0fa 0%,transparent 42%),#f3f7fb}
+.panel{border-radius:var(--panel-radius);border-color:#e3ecf3;box-shadow:0 3px 14px #16385705}
+.metric{position:relative;overflow:hidden;border-radius:var(--panel-radius);border-color:#e2edf3;background:linear-gradient(145deg,#fff,#f8fcff);transition:transform var(--motion-fast),box-shadow var(--motion-fast)}
+.metric:after{content:'';position:absolute;width:44px;height:44px;right:16px;top:15px;border-radius:14px;background:linear-gradient(140deg,#d7f4e8,#e9f8f6);opacity:.6;pointer-events:none}
+.metric strong,.chart-value strong,td,.transaction-preview{font-variant-numeric:tabular-nums}
+.metric strong{position:relative;z-index:1;letter-spacing:-.04em}
+.metric:hover{transform:translateY(-3px);box-shadow:0 10px 25px #16385710}
+.panel-head h2{letter-spacing:-.02em}.panel-head a{transition:color var(--motion-fast);font-weight:500}
+.sidebar-nav a{position:relative;transition:background var(--motion-fast),color var(--motion-fast),transform var(--motion-fast)}
+.sidebar-nav a:hover{transform:translateX(3px)}
+.sidebar-nav a.active:before{content:'';position:absolute;left:0;top:24%;bottom:24%;width:3px;border-radius:4px;background:#7dccff}
+.dash-top{border-bottom:1px solid #e5edf5;background:#ffffffeb}
+.dash-hero{border-radius:18px;overflow:hidden;background:linear-gradient(100deg,#e8f7fd 10%,#eff9fd60),url('/images/mountains.jpg') right center/cover}
+.dash-hero h1{text-wrap:balance;letter-spacing:-.045em}.dash-mountains{opacity:.5}
+.product-strip>a,.feature-tile{transition:transform var(--motion-fast),box-shadow var(--motion-fast),border-color var(--motion-fast)}
+.product-strip>a:hover,.feature-tile:hover{transform:translateY(-4px);box-shadow:0 12px 30px #21436012;border-color:#bbd9ec}
+button:disabled{cursor:not-allowed;opacity:.55;transform:none!important;box-shadow:none!important}
+:where(a,button,input,select,summary):focus-visible{outline:3px solid #2785df;outline-offset:3px}
+.table-scroll tbody tr{transition:background var(--motion-fast)}.table-scroll tbody tr:hover{background:#f1f8fd}
+.chart-ranges button{transition:background var(--motion-fast),color var(--motion-fast)}
+.transaction-preview{border-left:3px solid var(--mint)}
+@keyframes mofi-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:no-preference){.metric-grid>.metric{animation:mofi-enter 360ms ease-out both}.metric-grid>.metric:nth-child(2){animation-delay:50ms}.metric-grid>.metric:nth-child(3){animation-delay:100ms}.metric-grid>.metric:nth-child(4){animation-delay:150ms}.flash{animation:mofi-enter 220ms ease-out}.copilot-answer{animation:mofi-enter 300ms ease-out}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
