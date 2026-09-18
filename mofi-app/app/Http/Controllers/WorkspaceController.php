@@ -10,6 +10,7 @@ use App\Models\MarketPrice;
 use App\Models\Notification;
 use App\Models\Task;
 use App\Models\WatchlistItem;
+use App\Services\PortfolioSummary;
 use Brick\Math\BigDecimal;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,6 +57,12 @@ class WorkspaceController extends Controller
         } else {
             $class::create(['user_id' => $request->user()->id, ...$data]);
         }
+        if (in_array($section, ['goals', 'assets'], true)) {
+            $portfolio = $request->user()->portfolio;
+            if ($portfolio) {
+                PortfolioSummary::forget($portfolio);
+            }
+        }
 
         return back()->with('success', 'Đã lưu thay đổi.');
     }
@@ -64,6 +71,12 @@ class WorkspaceController extends Controller
     {
         abort_unless(isset(self::MODELS[$section]) && $section !== 'notifications', 404);
         self::MODELS[$section]::where('user_id', $request->user()->id)->findOrFail($id)->delete();
+        if (in_array($section, ['goals', 'assets'], true)) {
+            $portfolio = $request->user()->portfolio;
+            if ($portfolio) {
+                PortfolioSummary::forget($portfolio);
+            }
+        }
 
         return back()->with('success', 'Đã xóa mục đã chọn.');
     }

@@ -9,11 +9,22 @@ use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 class PortfolioSummary
 {
+    public static function cacheKey(Portfolio $portfolio): string
+    {
+        return 'mofi.portfolio.summary.'.$portfolio->id.'.'.config('demo.simulation_date');
+    }
+
+    public static function forget(Portfolio $portfolio): void
+    {
+        Cache::forget(self::cacheKey($portfolio));
+    }
+
     /** @return array<string, mixed> */
     public function forPortfolio(Portfolio $portfolio): array
     {

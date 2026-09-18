@@ -26,7 +26,7 @@ class DashboardController extends Controller
 
         return Inertia::render('Workspace', [
             'page' => $request->path(), 'user' => $user->only('id', 'name', 'email'),
-            'summary' => $summary->forPortfolio($portfolio), 'market' => $market,
+            'summary' => Cache::remember(PortfolioSummary::cacheKey($portfolio), now()->addSeconds(15), fn () => $summary->forPortfolio($portfolio)), 'market' => $market,
             'transactions' => $portfolio->transactions()->with('instrument')->orderByDesc('id')->paginate(20)->withQueryString(),
             'goals' => $user->goals()->orderBy('id')->get(), 'assets' => $user->manualAssets()->get(),
             'watchlist' => WatchlistItem::where('user_id', $user->id)->get(),
