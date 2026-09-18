@@ -14,10 +14,12 @@ use App\Models\Task;
 use App\Models\WatchlistItem;
 use App\Services\PortfolioSummary;
 use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class WorkspaceController extends Controller
 {
@@ -41,10 +43,24 @@ class WorkspaceController extends Controller
                 'cash_percent' => ['required', 'integer', 'between:0,100'], 'stock_percent' => ['required', 'integer', 'between:0,100'], 'other_percent' => ['required', 'integer', 'between:0,100'], 'notes' => ['nullable', 'string', 'max:1000'],
             ],
             'scenarios' => [
-                'name' => ['required', 'string', 'max:120'], 'shock_percent' => ['required', 'integer', 'between:0,50'], 'before_value' => ['required', 'regex:/\A[0-9]{1,18}\z/'], 'after_value' => ['required', 'regex:/\A[0-9]{1,18}\z/'], 'change_value' => ['required', 'regex:/\A-?[0-9]{1,18}\z/'],
+                'name' => ['required', 'string', 'max:120'], 'shock_percent' => ['required', 'integer', 'between:0,50'],
             ],
         };
         $data = $request->validate($rules);
+        if ($section === 'scenarios') {
+            $portfolio = $request->user()->portfolio;
+            if (! $portfolio) {
+                throw ValidationException::withMessages(['name' => 'Hãy tạo danh mục trước khi lưu kịch bản.']);
+            }
+            $summary = app(PortfolioSummary::class)->forPortfolio($portfolio);
+            if ($summary['total_assets'] === null || $summary['securities_value'] === null) {
+                throw ValidationException::withMessages(['shock_percent' => 'Chưa đủ giá để lưu kịch bản.']);
+            }
+            $before = BigDecimal::of($summary['total_assets'])->toScale(0, RoundingMode::HalfUp);
+            $loss = BigDecimal::of($summary['securities_value'])->multipliedBy($data['shock_percent'])
+                ->dividedBy(100, 0, RoundingMode::HalfUp);
+            $data += ['before_value' => (string) $before, 'after_value' => (string) $before->minus($loss), 'change_value' => (string) $loss->negated()];
+        }
         if ($section === 'goals') {
             abort_if(! BigDecimal::of($data['target_amount'])->isPositive(), 422, 'Mục tiêu phải lớn hơn 0.');
             $data['category'] = 'other';

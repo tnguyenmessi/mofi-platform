@@ -336,3 +336,11 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - [x] Strategy Studio có migration/model/factory, validation tổng tỷ trọng 100% và lưu theo user.
 - [x] Investment Lab có lưu kịch bản shock, hiển thị lịch sử kịch bản theo user và không ghi transaction.
 - [x] Migration Strategy/Simulation đã chạy trên Supabase và browser đã lưu thành công một chiến lược demo.
+
+### Kiểm chứng tính đúng của kịch bản
+
+- Máy chủ tính before/after/change từ PortfolioSummary mới, dùng BigDecimal và làm tròn VND; bỏ qua số tiền do client gửi. Thiếu giá thì trả validation error và không lưu.
+- Lưu kịch bản không thay đổi giao dịch hoặc số dư; test fixture A giảm chứng khoán 20% cho tổng tài sản 38.315.000 → 34.565.000 VND, chênh lệch -3.750.000 VND.
+- Migration bảo vệ hai bảng mới đã áp dụng lên Supabase: xác minh RLS bật, anon/authenticated không có quyền SELECT trực tiếp.
+- Sửa form mẫu chiến lược để giá trị input đổi đồng bộ khi chọn Thận trọng/Tăng trưởng.
+- Kiểm thử workspace: 14 pass; TypeScript và build thành công. Nghiệm thu toàn roadmap vẫn chưa hoàn tất.

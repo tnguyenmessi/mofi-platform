@@ -8,9 +8,11 @@ use App\Models\Instrument;
 use App\Models\ManualAsset;
 use App\Models\MarketPrice;
 use App\Models\Notification;
+use App\Models\SimulationScenario;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\WatchlistItem;
+use App\Services\PortfolioSummary;
 use Database\Seeders\DemoDataSeeder;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -84,7 +86,9 @@ class WorkspaceTest extends TestCase
 
     public function test_strategy_and_simulation_saves_are_user_scoped_and_validate_allocation(): void
     {
-        $user = User::factory()->create();
+        config(['demo.enabled' => true, 'demo.login_password' => 'test-only-demo-password']);
+        $this->seed(DemoDataSeeder::class);
+        $user = User::where('email', 'demo@mofi.local')->firstOrFail();
         $other = User::factory()->create();
         $this->actingAs($user)->post('/workspace/strategies', [
             'name' => 'Cân bằng mới', 'risk_profile' => 'balanced', 'cash_percent' => 30, 'stock_percent' => 50, 'other_percent' => 20,
@@ -96,8 +100,24 @@ class WorkspaceTest extends TestCase
         $this->post('/workspace/scenarios', [
             'name' => 'VN-Index giảm 20%', 'shock_percent' => 20, 'before_value' => '10000000', 'after_value' => '8000000', 'change_value' => '-2000000',
         ])->assertRedirect();
-        $this->assertDatabaseHas('simulation_scenarios', ['user_id' => $user->id, 'shock_percent' => 20]);
+        $this->assertDatabaseHas('simulation_scenarios', ['user_id' => $user->id, 'shock_percent' => 20,
+            'before_value' => '38315000', 'after_value' => '34565000', 'change_value' => '-3750000']);
+        $this->assertDatabaseCount('transactions', 5);
+        $scenario = SimulationScenario::firstOrFail();
+        $this->actingAs($other)->delete('/workspace/scenarios/'.$scenario->id)->assertNotFound();
+        $this->post('/workspace/scenarios/'.$scenario->id, ['name' => 'Changed', 'shock_percent' => 50])->assertNotFound();
         $this->actingAs($other)->get('/strategies')->assertInertia(fn (Assert $page) => $page->has('strategies', 0));
+    }
+
+    public function test_scenario_with_missing_prices_is_not_saved(): void
+    {
+        $user = User::factory()->create();
+        $user->portfolio()->create(['name' => 'Test portfolio', 'currency' => 'VND']);
+        $this->mock(PortfolioSummary::class)->shouldReceive('forPortfolio')->once()
+            ->andReturn(['total_assets' => null, 'securities_value' => null]);
+        $this->actingAs($user)->post('/workspace/scenarios', ['name' => 'Thiếu giá', 'shock_percent' => 20])
+            ->assertSessionHasErrors('shock_percent');
+        $this->assertDatabaseCount('simulation_scenarios', 0);
     }
 
     public function test_register_normalizes_email_creates_empty_portfolio_and_rejects_duplicate(): void
