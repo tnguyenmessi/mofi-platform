@@ -10,6 +10,7 @@ use App\Models\Task;
 use App\Models\WatchlistItem;
 use App\Services\PortfolioSummary;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -19,7 +20,9 @@ class DashboardController extends Controller
     {
         $user = $request->user();
         $portfolio = $user->portfolio()->firstOrCreate(['user_id' => $user->id], ['name' => 'Danh mục VND của tôi', 'currency' => 'VND']);
-        $market = Instrument::with(['marketPrices' => fn ($q) => $q->where('price_date', '<=', config('demo.simulation_date'))->where('is_demo', true)->where('source', 'demo')->orderByDesc('price_date')->limit(30)])->orderBy('id')->get();
+        $market = Cache::remember('mofi.demo.market.'.config('demo.simulation_date'), now()->addMinutes(2), function () {
+            return Instrument::with(['marketPrices' => fn ($q) => $q->where('price_date', '<=', config('demo.simulation_date'))->where('is_demo', true)->where('source', 'demo')->orderByDesc('price_date')->limit(30)])->orderBy('id')->get();
+        });
 
         return Inertia::render('Workspace', [
             'page' => $request->path(), 'user' => $user->only('id', 'name', 'email'),
