@@ -39,6 +39,11 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    public function isActive(): bool
+    {
+        return $this->active !== false;
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -50,6 +55,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => 'string',
+            'active' => 'boolean',
         ];
     }
 }

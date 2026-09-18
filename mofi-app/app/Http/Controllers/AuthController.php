@@ -24,6 +24,11 @@ class AuthController extends Controller
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()->withErrors(['email' => 'Email hoặc mật khẩu chưa đúng.'])->onlyInput('email');
         }
+        if (! $request->user()->isActive()) {
+            Auth::logout();
+
+            return back()->withErrors(['email' => 'Tài khoản đang bị tạm khóa.'])->onlyInput('email');
+        }
         $request->session()->regenerate();
 
         return redirect()->intended('/dashboard');

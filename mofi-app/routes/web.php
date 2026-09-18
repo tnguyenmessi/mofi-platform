@@ -26,6 +26,8 @@ Route::post('/register', [AuthController::class, 'register'])->middleware(['gues
 Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
 Route::get('/api/v1/market/live', LiveMarketController::class)->middleware('throttle:20,1')->name('api.v1.market.live');
 Route::get('/admin', AdminController::class)->middleware(['auth', 'admin'])->name('admin.dashboard');
+Route::post('/admin/users/{user}/toggle', [AdminController::class, 'toggleUser'])->middleware(['auth', 'admin'])->name('admin.users.toggle');
+Route::post('/admin/instruments/{instrument}/toggle', [AdminController::class, 'toggleInstrument'])->middleware(['auth', 'admin'])->name('admin.instruments.toggle');
 
 Route::get('/register', fn () => view('auth', ['register' => true]))->middleware('guest')->name('register.create');
 Route::middleware('auth')->group(function () {
