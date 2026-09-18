@@ -131,3 +131,17 @@ Binance public API tiếp tục là ví dụ giá thật cho crypto, tách khỏ
 
 ### Tiến độ admin (18/09/2026)
 Đã có role user/admin, middleware, trang giám sát chỉ đọc với phân trang và AdminSeeder riêng. Chưa triển khai CRUD/khóa tài khoản/audit log; các mục này vẫn thuộc P2. Mật khẩu admin được tạo ngẫu nhiên ở local, không đưa vào tài liệu public.
+
+## Rà soát chức năng lõi và lỗi cần xử lý
+
+- [ ] Kiểm thử trình duyệt có đăng nhập cho toàn bộ menu, đặc biệt giao dịch Mua/Bán.
+- [ ] Hoàn thiện trạng thái lỗi khi Inertia nhận response thiếu hoặc lỗi mạng; không để màn hình trắng.
+- [ ] Tách props theo từng trang bằng partial reload/lazy props để chuyển trang không tải lại toàn bộ workspace.
+- [ ] Dùng Supabase connection pooler và đo p50/p95 thời gian phản hồi.
+- [ ] Thêm xác nhận giao dịch, xem trước phí/thuế và số dư sau giao dịch.
+- [ ] Bổ sung validation khi không có mã tradable, giá thiếu hoặc dữ liệu market lỗi.
+- [ ] Portfolio cần có lọc theo mã/thời gian, lịch sử giá và hiệu suất so sánh.
+- [ ] Market cần trang chi tiết mã, tìm kiếm, watchlist và trạng thái nguồn dữ liệu.
+- [ ] Strategy/Simulation cần lưu kịch bản, CAGR, drawdown và benchmark rõ ràng.
+- [ ] Copilot cần lịch sử hội thoại, phạm vi dữ liệu và câu trả lời lỗi/timeout.
+- [ ] Thêm E2E browser test cho auth, menu, giao dịch và thao tác admin trước demo.
