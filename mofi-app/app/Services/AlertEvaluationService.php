@@ -16,7 +16,7 @@ class AlertEvaluationService
         DB::transaction(function () use ($user): void {
             $rules = AlertRule::where('user_id', $user->id)->with('instrument')->where('enabled', true)->orderBy('id')->lockForUpdate()->get();
             foreach ($rules as $rule) {
-                $price = MarketPrice::where('instrument_id', $rule->instrument_id)->where('price_date', '<=', config('demo.simulation_date'))->where('source', 'demo')->where('is_demo', true)->latest('price_date')->first();
+                $price = MarketPrice::where('instrument_id', $rule->instrument_id)->whereDate('price_date', config('demo.simulation_date'))->where('source', 'demo')->where('is_demo', true)->latest('price_date')->first();
                 if (! $price || ! BigDecimal::of($price->close)->isPositive()) {
                     continue;
                 }

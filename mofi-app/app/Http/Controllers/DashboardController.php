@@ -27,7 +27,7 @@ class DashboardController extends Controller
                 'kind' => ['nullable', 'in:DEPOSIT,WITHDRAW,BUY,SELL,DIVIDEND'],
                 'symbol' => ['nullable', 'string', 'max:20'],
                 'from' => ['nullable', 'date_format:Y-m-d'],
-                'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+                'to' => ['nullable', 'date_format:Y-m-d', ...($request->filled('from') ? ['after_or_equal:from'] : [])],
             ]);
         }
         $dashboard = $page === 'dashboard';

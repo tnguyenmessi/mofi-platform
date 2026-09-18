@@ -247,6 +247,10 @@ class WorkspaceTest extends TestCase
         $instrument = Instrument::factory()->create();
         $price = MarketPrice::factory()->for($instrument)->create(['close' => '100', 'price_date' => config('demo.simulation_date'), 'source' => 'demo', 'is_demo' => true]);
         $this->actingAs($user)->post('/workspace/alerts', ['instrument_id' => $instrument->id, 'operator' => 'GTE', 'threshold' => '90'])->assertSessionHasNoErrors();
+        $price->update(['price_date' => '2020-01-01']);
+        $this->post('/workspace/alerts/check')->assertRedirect();
+        $this->assertDatabaseCount('notifications', 0);
+        $price->update(['price_date' => config('demo.simulation_date')]);
         $this->post('/workspace/alerts/check')->assertRedirect();
         $this->post('/workspace/alerts/check')->assertRedirect();
         $this->assertDatabaseCount('notifications', 1);

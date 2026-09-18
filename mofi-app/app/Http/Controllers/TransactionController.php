@@ -29,8 +29,8 @@ class TransactionController extends Controller
         $input = $request->validate([
             'kind' => ['nullable', 'in:DEPOSIT,WITHDRAW,BUY,SELL,DIVIDEND'],
             'symbol' => ['nullable', 'string', 'max:20'],
-            'from' => ['nullable', 'date'],
-            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', ...($request->filled('from') ? ['after_or_equal:from'] : [])],
         ]);
         $query = $portfolio->transactions()->with('instrument')->where('user_id', $request->user()->id)
             ->orderBy('trade_date')->orderBy('id');
@@ -51,12 +51,17 @@ class TransactionController extends Controller
         return response()->streamDownload(function () use ($rows): void {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Ngày', 'Loại', 'Mã', 'Số lượng', 'Giá đơn vị', 'Giá trị gộp', 'Phí', 'Thuế', 'Dòng tiền']);
+            fputcsv($out, ['Ngày', 'Loại', 'Mã', 'Số lượng', 'Giá đơn vị', 'Giá trị gộp', 'Phí', 'Thuế', 'Dòng tiền'], ',', '"', '');
             foreach ($rows as $row) {
-                fputcsv($out, [$row->trade_date->toDateString(), $row->kind, $row->instrument?->symbol ?? 'Tiền mặt', $row->quantity, $row->unit_price, $row->gross_amount, $row->fee, $row->tax, $row->cash_delta]);
+                fputcsv($out, [$row->trade_date->toDateString(), $row->kind, $this->csvText($row->instrument?->symbol ?? 'Tiền mặt'), $row->quantity, $row->unit_price, $row->gross_amount, $row->fee, $row->tax, $row->cash_delta], ',', '"', '');
             }
             fclose($out);
         }, 'mofi-giao-dich.csv', ['Content-Type' => 'text/csv; charset=UTF-8', 'Cache-Control' => 'private, no-store']);
+    }
+
+    private function csvText(string $value): string
+    {
+        return preg_match('/^[=+@\-\t\r\n]/', ltrim($value, ' ')) ? "'".$value : $value;
     }
 
     public function store(StoreTransactionRequest $request, Portfolio $portfolio, RecordTransaction $record): JsonResponse

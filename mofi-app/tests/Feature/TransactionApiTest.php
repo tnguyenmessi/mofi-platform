@@ -39,6 +39,8 @@ class TransactionApiTest extends TestCase
         $url = route('api.v1.transactions.export', $portfolio);
         $response = $this->get($url.'?kind=BUY&symbol=MOFI&from=2026-08-20&to=2026-08-30');
         $response->assertOk()->assertDownload('mofi-giao-dich.csv');
+        $this->get($url.'?to=2026-09-01')->assertOk()->assertDownload('mofi-giao-dich.csv');
+        $this->get('/transactions?to=2026-09-01')->assertOk();
         $csv = $response->streamedContent();
         $this->assertStringStartsWith("\xEF\xBB\xBF", $csv);
         $this->assertStringContainsString('BUY,MOFI', $csv);
