@@ -26,6 +26,7 @@
 - Browser QA passed for market lazy chart loading and transaction filters.
 - Admin search/filter and goal deadline/monthly-contribution checks have automated coverage.
 - Strategy Studio can save user-scoped allocation records; Investment Lab can save user-scoped shock scenarios without changing portfolio transactions.
+- Supabase migration `2026_09_18_140000_create_strategy_and_simulation_tables` is applied and appears as batch 7 in `artisan migrate:status`.
 - Production workspace JavaScript initial payload is about 441 KB (about 133 KB gzip); charts load on demand.
 
 ## Known boundaries
