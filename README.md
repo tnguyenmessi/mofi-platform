@@ -56,6 +56,8 @@ On 17 September 2026, a read-only PDO PostgreSQL connection using the local conf
 
 Yêu cầu PHP 8.4+, Composer, Node.js 20+ và PostgreSQL/Supabase.
 
+Trên Windows, nếu lệnh `php` chưa có trong PATH, dùng PHP tại `C:/Users/nguye/AppData/Local/Microsoft/WinGet/Packages/PHP.PHP.8.4_Microsoft.Winget.Source_8wekyb3d8bbwe/php.exe` hoặc thêm thư mục đó vào PATH.
+
 ```powershell
 cd mofi-app
 Copy-Item .env.example .env
@@ -69,6 +71,8 @@ php artisan serve
 ```
 
 Mở `http://127.0.0.1:8000/`. Đăng nhập bằng tài khoản demo trong file local `mofi-app/.local-demo-credentials.md` (file này bị git ignore). Admin dùng `/admin`. Khi phát triển giao diện, chạy thêm terminal thứ hai: `npm run dev`.
+
+Nếu `composer` chưa có trong PATH, cài Composer rồi mở lại PowerShell trước khi chạy các lệnh trên.
 
 Kiểm tra trước khi push:
 
