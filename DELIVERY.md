@@ -42,6 +42,11 @@
 - GitHub Actions CI now checks Pint, PHPUnit, TypeScript and the production Vite build on pushes and pull requests.
 - Real market providers, LLM integration, CI/CD deployment and production monitoring remain separate follow-up work.
 
+## Demo runbook
+
+- Kịch bản trình bày, thuật toán, câu hỏi phản biện và lệnh kiểm thử: `docs/demo/DEMO_RUNBOOK.md`.
+- Tài khoản/mật khẩu local: `mofi-app/.local-demo-credentials.md` (Git ignored, không public).
+
 ## Local commands
 
 ```powershell
