@@ -15,7 +15,7 @@ class OrderController extends Controller
     public function index(Request $request, Portfolio $portfolio): JsonResponse
     {
         Gate::authorize('view', $portfolio);
-        $orders = $portfolio->orders()->with(['instrument', 'reservation', 'execution'])
+        $orders = $portfolio->orders()->with(['instrument', 'reservation', 'execution', 'executions'])
             ->where('user_id', $request->user()->id)
             ->when($request->filled('status'), fn ($query) => $query->where('status', strtoupper($request->string('status'))))
             ->when($request->filled('side'), fn ($query) => $query->where('side', strtoupper($request->string('side'))))

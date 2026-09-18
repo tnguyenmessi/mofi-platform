@@ -117,5 +117,8 @@ class PaperTradingTest extends TestCase
             ->assertOk()->assertJsonPath('data.filled.0.status', 'PARTIALLY_FILLED')->assertJsonPath('data.filled.0.quantity', '100.00000000');
         $this->assertDatabaseHas('orders', ['id' => $order->json('data.id'), 'status' => 'PARTIALLY_FILLED', 'filled_quantity' => '100.00000000']);
         $this->assertDatabaseCount('executions', 1);
+        $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])
+            ->assertOk()->assertJsonPath('data.filled.0.status', 'FILLED')->assertJsonPath('data.filled.0.quantity', '50.00000000');
+        $this->assertDatabaseCount('executions', 2);
     }
 }
