@@ -22,12 +22,12 @@ class DashboardController extends Controller
         $portfolio = $user->portfolio()->firstOrCreate(['user_id' => $user->id], ['name' => 'Danh mục VND của tôi', 'currency' => 'VND']);
         $page = $request->path();
         $dashboard = $page === 'dashboard';
-        $marketPages = $dashboard || in_array($page, ['transactions', 'portfolio', 'market', 'watchlist', 'alerts'], true);
-        $goalsPages = $dashboard || in_array($page, ['goals'], true);
+        $marketPages = $dashboard || in_array($page, ['transactions', 'market', 'watchlist', 'alerts', 'notifications'], true);
+        $goalsPages = $dashboard || in_array($page, ['goals', 'copilot'], true);
         $assetsPages = $dashboard || $page === 'assets';
         $tasksPages = $dashboard || $page === 'tasks';
-        $alertsPages = $dashboard || $page === 'alerts';
-        $notificationsPages = $dashboard || $page === 'notifications';
+        $alertsPages = $dashboard || in_array($page, ['alerts', 'notifications'], true);
+        $notificationsPages = in_array($page, ['alerts', 'notifications'], true);
         $learningPages = $dashboard || $page === 'learn';
         $fullSummaryPages = in_array($page, ['dashboard', 'portfolio', 'assets', 'copilot', 'simulation'], true);
         $summaryData = $fullSummaryPages

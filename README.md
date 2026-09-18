@@ -74,6 +74,8 @@ Mở `http://127.0.0.1:8000/`. Đăng nhập bằng tài khoản demo trong file
 
 Nếu `composer` chưa có trong PATH, cài Composer rồi mở lại PowerShell trước khi chạy các lệnh trên.
 
+Nếu workspace vẫn chậm khi dùng Supabase, mở Supabase Dashboard → Connect → Session pooler và thay `DB_HOST`, `DB_PORT`, `DB_USERNAME` trong file `.env` theo chuỗi kết nối do Supabase cấp. Không tự đoán region hoặc commit các giá trị này vào Git.
+
 Kiểm tra trước khi push:
 
 ```powershell

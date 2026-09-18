@@ -23,6 +23,23 @@ class WorkspaceTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    public function test_page_specific_props_preserve_copilot_goals_and_alerts_notification_workspace(): void
+    {
+        config(['demo.enabled' => true, 'demo.login_password' => 'test-only-demo-password']);
+        $this->seed(DemoDataSeeder::class);
+        $user = User::where('email', 'demo@mofi.local')->firstOrFail();
+        $notification = Notification::factory()->create(['user_id' => $user->id]);
+        $this->actingAs($user)->get('/copilot')->assertInertia(fn (Assert $page) => $page
+            ->has('goals', 1)->where('goals.0.user_id', $user->id)->has('market', 0));
+        foreach (['alerts', 'notifications'] as $route) {
+            $this->get('/'.$route)->assertInertia(fn (Assert $page) => $page
+                ->has('alerts', 1)->has('market', 4)
+                ->where('notifications.0.id', $notification->id));
+        }
+        $this->get('/transactions')->assertInertia(fn (Assert $page) => $page
+            ->has('goals', 0)->has('alerts', 0)->has('learning', 0)->has('transactions.data', 5));
+    }
+
     public function test_register_normalizes_email_creates_empty_portfolio_and_rejects_duplicate(): void
     {
         $this->post('/register', ['name' => 'Người thử', 'email' => ' New@Example.com ', 'password' => 'secure-test-password', 'password_confirmation' => 'secure-test-password'])->assertRedirect('/dashboard');

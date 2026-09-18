@@ -269,3 +269,12 @@ Sau khi duyệt, triển khai theo P0 trước để ổn định luồng lõi, 
 - [x] Trang không cần định giá đầy đủ dùng summary rút gọn.
 - [x] Cập nhật test để phân biệt trang cần summary đầy đủ và trang chỉ cần dữ liệu riêng.
 - [ ] Độ trễ phiên browser vẫn khoảng 10 giây; cần chuyển Supabase sang connection pooler và đo lại sau khi đổi endpoint.
+
+### Kiểm chứng sau tối ưu theo trang
+
+- Đã sửa hồi quy: Copilot vẫn nhận mục tiêu; cả Alerts và Notifications nhận đủ cảnh báo, mã tài sản và thông báo.
+- Có kiểm thử hồi quy cho các props này và đảm bảo Transactions không tải các module không cần thiết.
+- Đã thêm thanh trạng thái khi Inertia chuyển trang; đây là phản hồi giao diện, không phải cải thiện thời gian backend.
+- Kiểm tra: 71 test pass, 1 skipped; TypeScript và build thành công. Bundle lớn vẫn cần tách.
+- Pooler chưa được áp dụng. Cần lấy endpoint Session pooler thật từ Supabase, kiểm tra TLS và đo so sánh trước khi thay .env.
+- Các số đo khoảng 10 giây từ công cụ browser trước đây chưa tách được overhead công cụ khỏi TTFB. Chưa đủ bằng chứng kết luận nguyên nhân là database; chưa nghiệm thu mục tiêu tốc độ.
