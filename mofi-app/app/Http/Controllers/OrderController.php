@@ -15,7 +15,12 @@ class OrderController extends Controller
     public function index(Request $request, Portfolio $portfolio): JsonResponse
     {
         Gate::authorize('view', $portfolio);
-        $orders = $portfolio->orders()->with(['instrument', 'reservation', 'execution'])->where('user_id', $request->user()->id)->latest('id')->paginate(min(100, $request->integer('per_page', 25)));
+        $orders = $portfolio->orders()->with(['instrument', 'reservation', 'execution'])
+            ->where('user_id', $request->user()->id)
+            ->when($request->filled('status'), fn ($query) => $query->where('status', strtoupper($request->string('status'))))
+            ->when($request->filled('side'), fn ($query) => $query->where('side', strtoupper($request->string('side'))))
+            ->when($request->filled('instrument_id'), fn ($query) => $query->where('instrument_id', $request->integer('instrument_id')))
+            ->latest('id')->paginate(min(100, $request->integer('per_page', 25)));
 
         return response()->json(['data' => $orders->items(), 'meta' => ['current_page' => $orders->currentPage(), 'last_page' => $orders->lastPage()]], 200, ['Cache-Control' => 'private, no-store']);
     }

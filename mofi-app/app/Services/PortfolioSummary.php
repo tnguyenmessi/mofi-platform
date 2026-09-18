@@ -76,10 +76,29 @@ class PortfolioSummary
             ];
         }
         $summary = $this->calculate($rows, $prices, $instruments, $asOf->toDateString());
+        $reservedCash = BigDecimal::zero();
+        $reservedQuantity = [];
+        foreach ($portfolio->orders()->whereIn('status', ['OPEN', 'PARTIALLY_FILLED'])->with('reservation')->get() as $order) {
+            if ($order->side === 'BUY') {
+                $reservedCash = $reservedCash->plus($order->reservation?->cash_amount ?? 0);
+            } else {
+                $reservedQuantity[$order->instrument_id] = ($reservedQuantity[$order->instrument_id] ?? BigDecimal::zero())->plus($order->reservation?->quantity ?? 0);
+            }
+        }
+        $availableHoldings = collect($summary['holdings'])->map(function (array $holding) use ($reservedQuantity): array {
+            $reserved = $reservedQuantity[$holding['instrument_id']] ?? BigDecimal::zero();
+            $holding['reserved_quantity'] = $this->decimal($reserved);
+            $holding['available_quantity'] = $this->decimal(BigDecimal::of($holding['quantity'])->minus($reserved));
+
+            return $holding;
+        })->all();
+        $summary['holdings'] = $availableHoldings;
 
         return array_merge($summary, [
             'portfolio_id' => $portfolio->id, 'currency' => 'VND', 'as_of' => $asOf->toDateString(), 'is_demo' => true,
             'manual_assets' => $this->decimal($manual),
+            'reserved_cash' => $this->decimal($reservedCash),
+            'available_cash' => $this->decimal(BigDecimal::of($summary['cash'])->minus($reservedCash)),
             'total_assets' => $summary['portfolio_value'] === null ? null : $this->decimal(BigDecimal::of($summary['portfolio_value'])->plus($manual)),
             'known_total_assets' => $this->decimal(BigDecimal::of($summary['known_portfolio_value'])->plus($manual)),
             'goals' => $goals, 'history' => $history,

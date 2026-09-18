@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use Database\Seeders\DemoDataSeeder;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class PortfolioSummaryTest extends TestCase
@@ -49,12 +50,30 @@ class PortfolioSummaryTest extends TestCase
             ->assertJsonPath('data.status', 'complete')
             ->assertJsonPath('data.as_of', '2026-09-15')
             ->assertJsonPath('data.is_demo', true)
+            ->assertJsonPath('data.reserved_cash', '0.00000000')
+            ->assertJsonPath('data.available_cash', '14565000.00000000')
             ->assertJsonCount(30, 'data.history')
             ->assertJsonPath('data.history.0.date', '2026-08-17')
             ->assertJsonPath('data.history.0.value', '30000000.00000000')
             ->assertJsonPath('data.history.29.value', '33315000.00000000');
         $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
         $this->assertDatabaseCount('transactions', 5);
+    }
+
+    public function test_open_buy_order_reduces_available_cash_without_changing_cash_history(): void
+    {
+        $portfolio = $this->fixture();
+        $instrument = Instrument::where('symbol', 'MOFI')->firstOrFail();
+
+        $this->actingAs($portfolio->user)->postJson(route('api.v1.orders.store', $portfolio), [
+            'request_key' => (string) Str::uuid(), 'instrument_id' => $instrument->id,
+            'side' => 'BUY', 'order_type' => 'LIMIT', 'quantity' => '10', 'limit_price' => '124000',
+        ])->assertCreated()->assertJsonPath('data.status', 'OPEN');
+
+        $this->getJson($this->endpoint($portfolio))->assertOk()
+            ->assertJsonPath('data.cash', '14565000.00000000')
+            ->assertJsonPath('data.reserved_cash', '1240000.00000000')
+            ->assertJsonPath('data.available_cash', '13325000.00000000');
     }
 
     public function test_guest_receives_json_401_even_without_accept_header(): void
