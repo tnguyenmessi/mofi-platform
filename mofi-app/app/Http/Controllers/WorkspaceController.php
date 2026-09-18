@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\AlertRule;
+use App\Models\CommunityPost;
+use App\Models\CopilotQuestion;
 use App\Models\Goal;
 use App\Models\InvestmentStrategy;
 use App\Models\LearningProgress;
@@ -23,7 +25,7 @@ use Illuminate\Validation\ValidationException;
 
 class WorkspaceController extends Controller
 {
-    private const MODELS = ['goals' => Goal::class, 'assets' => ManualAsset::class, 'tasks' => Task::class, 'watchlist' => WatchlistItem::class, 'alerts' => AlertRule::class, 'notifications' => Notification::class, 'strategies' => InvestmentStrategy::class, 'scenarios' => SimulationScenario::class];
+    private const MODELS = ['goals' => Goal::class, 'assets' => ManualAsset::class, 'tasks' => Task::class, 'watchlist' => WatchlistItem::class, 'alerts' => AlertRule::class, 'notifications' => Notification::class, 'strategies' => InvestmentStrategy::class, 'scenarios' => SimulationScenario::class, 'community' => CommunityPost::class];
 
     public function save(Request $request, string $section, ?int $id = null): RedirectResponse
     {
@@ -44,6 +46,9 @@ class WorkspaceController extends Controller
             ],
             'scenarios' => [
                 'name' => ['required', 'string', 'max:120'], 'shock_percent' => ['required', 'integer', 'between:0,50'],
+            ],
+            'community' => [
+                'title' => ['required', 'string', 'max:160'], 'body' => ['required', 'string', 'max:5000'],
             ],
         };
         $data = $request->validate($rules);
@@ -95,6 +100,28 @@ class WorkspaceController extends Controller
         }
 
         return back()->with('success', 'Đã lưu thay đổi.');
+    }
+
+    public function askCopilot(Request $request, PortfolioSummary $portfolioSummary): RedirectResponse
+    {
+        $data = $request->validate(['question' => ['required', 'string', 'max:500']]);
+        $user = $request->user();
+        $portfolio = $user->portfolio()->firstOrCreate(['user_id' => $user->id], ['name' => 'Danh mục VND của tôi', 'currency' => 'VND']);
+        $summary = $portfolioSummary->forPortfolio($portfolio);
+        $question = mb_strtolower(trim($data['question']));
+        if (str_contains($question, 'tiền mặt') || str_contains($question, 'tỷ trọng')) {
+            $answer = $summary['total_assets'] === null || (float) $summary['total_assets'] <= 0
+                ? 'Chưa đủ dữ liệu để tính tỷ trọng tiền mặt.'
+                : 'Tiền mặt hiện chiếm '.number_format((float) $summary['cash'] * 100 / (float) $summary['total_assets'], 2, ',', '.').'% tổng tài sản. Đây là mô tả dữ liệu mô phỏng, không phải khuyến nghị.';
+        } elseif (str_contains($question, 'mục tiêu') || str_contains($question, 'tiến độ')) {
+            $goals = $user->goals()->get();
+            $answer = $goals->isEmpty() ? 'Bạn chưa có mục tiêu tài chính.' : $goals->map(fn ($goal) => $goal->name.': '.number_format(min(100, (float) $goal->saved_amount * 100 / max(1, (float) $goal->target_amount)), 2, ',', '.').'%')->implode('; ');
+        } else {
+            $answer = 'Danh mục có '.count($summary['holdings']).' mã, tiền mặt '.number_format((float) $summary['cash'], 0, ',', '.').' đồng và lãi/lỗ tổng '.number_format((float) ($summary['total_pnl'] ?? 0), 0, ',', '.').' đồng. Đây là tóm tắt theo quy tắc từ dữ liệu mô phỏng, không phải khuyến nghị mua bán.';
+        }
+        CopilotQuestion::create(['user_id' => $user->id, 'question' => trim($data['question']), 'answer' => $answer, 'source' => 'rules']);
+
+        return back()->with('success', 'Đã lưu câu hỏi và câu trả lời vào lịch sử Copilot.');
     }
 
     public function destroy(Request $request, string $section, int $id): RedirectResponse

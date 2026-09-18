@@ -26,6 +26,8 @@
 - Browser QA passed for market lazy chart loading and transaction filters.
 - Admin search/filter and goal deadline/monthly-contribution checks have automated coverage.
 - Strategy Studio can save user-scoped allocation records; Investment Lab can save user-scoped shock scenarios without changing portfolio transactions.
+- Community now supports user-scoped post creation and deletion, with shared read-only browsing and owner checks.
+- MOFI Copilot now saves rule-based question history per user; answers remain deterministic and carry the simulation disclaimer.
 - Supabase migration `2026_09_18_140000_create_strategy_and_simulation_tables` is applied and appears as batch 7 in `artisan migrate:status`.
 - Production workspace JavaScript initial payload is about 441 KB (about 133 KB gzip); charts load on demand.
 
@@ -33,7 +35,8 @@
 
 - The 30-day stock history is demo data and is labeled as such.
 - Copilot is deterministic and read-only; it is not a trained or paid LLM.
-- The approved demo core is verified. Strategy persistence, community posting, real market providers, LLM integration, CI/CD deployment and production monitoring remain separate follow-up work.
+- Community posts and Copilot history are application-managed tables with direct Postgres API access revoked and RLS enabled on PostgreSQL.
+- Real market providers, LLM integration, CI/CD deployment and production monitoring remain separate follow-up work.
 
 ## Local commands
 

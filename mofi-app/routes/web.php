@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/workspace/alerts/check', [WorkspaceController::class, 'checkAlerts'])->middleware('throttle:20,1');
     Route::post('/workspace/learn', [WorkspaceController::class, 'lesson']);
     Route::post('/workspace/settings', [WorkspaceController::class, 'settings']);
+    Route::post('/workspace/copilot', [WorkspaceController::class, 'askCopilot'])->middleware('throttle:30,1');
     Route::post('/workspace/{section}/{id?}', [WorkspaceController::class, 'save'])->whereNumber('id')->middleware('throttle:60,1');
     Route::delete('/workspace/{section}/{id}', [WorkspaceController::class, 'destroy'])->whereNumber('id');
 });

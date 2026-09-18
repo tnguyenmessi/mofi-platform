@@ -44,6 +44,16 @@ class User extends Authenticatable
         return $this->hasMany(SimulationScenario::class);
     }
 
+    public function communityPosts(): HasMany
+    {
+        return $this->hasMany(CommunityPost::class);
+    }
+
+    public function copilotQuestions(): HasMany
+    {
+        return $this->hasMany(CopilotQuestion::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\AlertRule;
+use App\Models\CommunityPost;
+use App\Models\CopilotQuestion;
 use App\Models\Goal;
 use App\Models\Instrument;
 use App\Models\ManualAsset;
@@ -118,6 +120,41 @@ class WorkspaceTest extends TestCase
         $this->actingAs($user)->post('/workspace/scenarios', ['name' => 'Thiếu giá', 'shock_percent' => 20])
             ->assertSessionHasErrors('shock_percent');
         $this->assertDatabaseCount('simulation_scenarios', 0);
+    }
+
+    public function test_community_posts_are_shared_but_only_the_owner_can_change_them(): void
+    {
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $this->actingAs($owner)->post('/workspace/community', ['title' => 'Quỹ dự phòng', 'body' => 'Góc nhìn học tập', 'user_id' => $other->id, 'likes_count' => 999])->assertSessionHasNoErrors();
+        $post = CommunityPost::sole();
+        $this->assertSame($owner->id, $post->user_id);
+        $this->assertEquals(0, $post->likes_count);
+        $this->actingAs($other)->get('/community')->assertInertia(fn (Assert $page) => $page
+            ->where('communityPosts.0.id', $post->id)->missing('communityPosts.0.user.email')->missing('communityPosts.0.user.password'));
+        $this->post('/workspace/community/'.$post->id, ['title' => 'Changed', 'body' => 'Changed'])->assertNotFound();
+        $this->delete('/workspace/community/'.$post->id)->assertNotFound();
+        $this->post('/workspace/community', ['title' => str_repeat('a', 161), 'body' => ''])->assertSessionHasErrors(['title', 'body']);
+        $this->actingAs($owner)->delete('/workspace/community/'.$post->id)->assertRedirect();
+        $this->assertDatabaseMissing('community_posts', ['id' => $post->id]);
+    }
+
+    public function test_copilot_answers_are_saved_privately_and_ignore_client_supplied_answers(): void
+    {
+        config(['demo.enabled' => true, 'demo.login_password' => 'test-only-demo-password']);
+        $this->seed(DemoDataSeeder::class);
+        $owner = User::where('email', 'demo@mofi.local')->firstOrFail();
+        $other = User::factory()->create();
+        $this->actingAs($owner)->post('/workspace/copilot', ['question' => 'Tóm tắt danh mục', 'answer' => 'Forged', 'source' => 'AI', 'user_id' => $other->id])->assertSessionHasNoErrors();
+        $entry = CopilotQuestion::sole();
+        $this->assertSame($owner->id, $entry->user_id);
+        $this->assertSame('rules', $entry->source);
+        $this->assertStringNotContainsString('Forged', $entry->answer);
+        $this->assertStringNotContainsString($owner->email, $entry->answer);
+        $this->get('/copilot')->assertInertia(fn (Assert $page) => $page->where('copilotHistory.0.id', $entry->id));
+        $this->actingAs($other)->get('/copilot')->assertInertia(fn (Assert $page) => $page->has('copilotHistory', 0));
+        $this->post('/workspace/copilot', ['question' => str_repeat('a', 501)])->assertSessionHasErrors('question');
+        $this->assertDatabaseCount('copilot_questions', 1);
     }
 
     public function test_register_normalizes_email_creates_empty_portfolio_and_rejects_duplicate(): void

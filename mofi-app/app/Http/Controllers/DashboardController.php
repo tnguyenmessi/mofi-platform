@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AlertRule;
+use App\Models\CommunityPost;
 use App\Models\Instrument;
 use App\Models\LearningProgress;
 use App\Models\Notification;
@@ -39,6 +40,8 @@ class DashboardController extends Controller
         $learningPages = $dashboard || $page === 'learn';
         $strategyPages = $dashboard || $page === 'strategies';
         $simulationPages = $dashboard || $page === 'simulation';
+        $communityPages = $dashboard || $page === 'community';
+        $copilotPages = $dashboard || $page === 'copilot';
         $fullSummaryPages = in_array($page, ['dashboard', 'portfolio', 'assets', 'copilot', 'simulation'], true);
         $summaryData = $fullSummaryPages
             ? Cache::remember(PortfolioSummary::cacheKey($portfolio), now()->addSeconds(15), fn () => $summary->forPortfolio($portfolio))
@@ -73,6 +76,8 @@ class DashboardController extends Controller
             'learning' => $learningPages ? LearningProgress::where('user_id', $user->id)->pluck('lesson_slug') : [],
             'strategies' => $strategyPages ? $user->investmentStrategies()->latest()->get() : [],
             'scenarios' => $simulationPages ? $user->simulationScenarios()->latest()->limit(10)->get() : [],
+            'communityPosts' => $communityPages ? CommunityPost::with('user:id,name')->latest()->limit(30)->get() : [],
+            'copilotHistory' => $copilotPages ? $user->copilotQuestions()->latest()->limit(20)->get() : [],
         ]);
     }
 }

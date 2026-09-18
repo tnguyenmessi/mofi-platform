@@ -337,6 +337,15 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - [x] Investment Lab có lưu kịch bản shock, hiển thị lịch sử kịch bản theo user và không ghi transaction.
 - [x] Migration Strategy/Simulation đã chạy trên Supabase và browser đã lưu thành công một chiến lược demo.
 
+### Community và Copilot (18/09/2026)
+
+- [x] Community có bảng bài viết, form đăng bài, danh sách bài mới nhất và xóa bài theo đúng chủ sở hữu.
+- [x] Copilot lưu câu hỏi/câu trả lời rule-based theo từng user; không nhận answer/source/user_id từ client.
+- [x] Community/Copilot props được giới hạn theo trang và user; test kiểm tra không rò email/password và chống truy cập chéo user.
+- [x] Migration `2026_09_18_150000_create_community_and_copilot_tables` đã chạy ở môi trường local và bật RLS/revoke cho PostgreSQL.
+- [x] Full PHPUnit sau thay đổi: 81 passed, 1 skipped, 987 assertions; TypeScript và Vite production build đạt.
+- [ ] Chưa tích hợp provider giá cổ phiếu thật hoặc LLM trả phí; đây là giới hạn cố ý của bản demo.
+
 ### Kiểm chứng tính đúng của kịch bản
 
 - Máy chủ tính before/after/change từ PortfolioSummary mới, dùng BigDecimal và làm tròn VND; bỏ qua số tiền do client gửi. Thiếu giá thì trả validation error và không lưu.
