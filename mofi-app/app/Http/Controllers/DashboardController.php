@@ -37,6 +37,8 @@ class DashboardController extends Controller
         $alertsPages = $dashboard || in_array($page, ['alerts', 'notifications'], true);
         $notificationsPages = in_array($page, ['alerts', 'notifications'], true);
         $learningPages = $dashboard || $page === 'learn';
+        $strategyPages = $dashboard || $page === 'strategies';
+        $simulationPages = $dashboard || $page === 'simulation';
         $fullSummaryPages = in_array($page, ['dashboard', 'portfolio', 'assets', 'copilot', 'simulation'], true);
         $summaryData = $fullSummaryPages
             ? Cache::remember(PortfolioSummary::cacheKey($portfolio), now()->addSeconds(15), fn () => $summary->forPortfolio($portfolio))
@@ -69,6 +71,8 @@ class DashboardController extends Controller
             'alerts' => $alertsPages ? AlertRule::with('instrument')->where('user_id', $user->id)->get() : [],
             'notifications' => $notificationsPages ? Notification::where('user_id', $user->id)->latest()->limit(100)->get() : [],
             'learning' => $learningPages ? LearningProgress::where('user_id', $user->id)->pluck('lesson_slug') : [],
+            'strategies' => $strategyPages ? $user->investmentStrategies()->latest()->get() : [],
+            'scenarios' => $simulationPages ? $user->simulationScenarios()->latest()->limit(10)->get() : [],
         ]);
     }
 }

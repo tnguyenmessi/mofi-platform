@@ -25,6 +25,7 @@
 - Browser QA passed for a disposable account: deposit 2,000,000 VND, buy 10 MOFI, sell 4 MOFI; history, fees, taxes and balances updated after reload.
 - Browser QA passed for market lazy chart loading and transaction filters.
 - Admin search/filter and goal deadline/monthly-contribution checks have automated coverage.
+- Strategy Studio can save user-scoped allocation records; Investment Lab can save user-scoped shock scenarios without changing portfolio transactions.
 - Production workspace JavaScript initial payload is about 441 KB (about 133 KB gzip); charts load on demand.
 
 ## Known boundaries

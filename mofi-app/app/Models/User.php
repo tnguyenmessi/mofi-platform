@@ -34,6 +34,16 @@ class User extends Authenticatable
         return $this->hasMany(ManualAsset::class);
     }
 
+    public function investmentStrategies(): HasMany
+    {
+        return $this->hasMany(InvestmentStrategy::class);
+    }
+
+    public function simulationScenarios(): HasMany
+    {
+        return $this->hasMany(SimulationScenario::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\AlertRule;
 use App\Models\Goal;
+use App\Models\InvestmentStrategy;
 use App\Models\LearningProgress;
 use App\Models\ManualAsset;
 use App\Models\MarketPrice;
 use App\Models\Notification;
+use App\Models\SimulationScenario;
 use App\Models\Task;
 use App\Models\WatchlistItem;
 use App\Services\PortfolioSummary;
@@ -19,7 +21,7 @@ use Illuminate\Validation\Rule;
 
 class WorkspaceController extends Controller
 {
-    private const MODELS = ['goals' => Goal::class, 'assets' => ManualAsset::class, 'tasks' => Task::class, 'watchlist' => WatchlistItem::class, 'alerts' => AlertRule::class, 'notifications' => Notification::class];
+    private const MODELS = ['goals' => Goal::class, 'assets' => ManualAsset::class, 'tasks' => Task::class, 'watchlist' => WatchlistItem::class, 'alerts' => AlertRule::class, 'notifications' => Notification::class, 'strategies' => InvestmentStrategy::class, 'scenarios' => SimulationScenario::class];
 
     public function save(Request $request, string $section, ?int $id = null): RedirectResponse
     {
@@ -34,6 +36,13 @@ class WorkspaceController extends Controller
             'watchlist' => ['instrument_id' => ['required', 'integer', 'exists:instruments,id']],
             'alerts' => $row ? ['enabled' => ['required', 'boolean']] : ['instrument_id' => ['required', 'integer', 'exists:instruments,id'], 'operator' => ['required', Rule::in(['GTE', 'LTE'])], 'threshold' => ['required', 'regex:/\A[0-9]{1,16}(?:\.[0-9]{1,8})?\z/', 'gt:0']],
             'notifications' => [],
+            'strategies' => [
+                'name' => ['required', 'string', 'max:120'], 'risk_profile' => ['required', Rule::in(['conservative', 'balanced', 'growth'])],
+                'cash_percent' => ['required', 'integer', 'between:0,100'], 'stock_percent' => ['required', 'integer', 'between:0,100'], 'other_percent' => ['required', 'integer', 'between:0,100'], 'notes' => ['nullable', 'string', 'max:1000'],
+            ],
+            'scenarios' => [
+                'name' => ['required', 'string', 'max:120'], 'shock_percent' => ['required', 'integer', 'between:0,50'], 'before_value' => ['required', 'regex:/\A[0-9]{1,18}\z/'], 'after_value' => ['required', 'regex:/\A[0-9]{1,18}\z/'], 'change_value' => ['required', 'regex:/\A-?[0-9]{1,18}\z/'],
+            ],
         };
         $data = $request->validate($rules);
         if ($section === 'goals') {
@@ -49,6 +58,11 @@ class WorkspaceController extends Controller
         if ($section === 'notifications') {
             abort_unless($row, 404);
             $data = ['read_at' => $row->read_at ?? now()];
+        }
+        if ($section === 'strategies') {
+            abort_unless($data['cash_percent'] + $data['stock_percent'] + $data['other_percent'] === 100, 422, 'Tỷ trọng phải cộng đúng 100%.');
+            $data['allocation'] = ['cash' => $data['cash_percent'], 'stocks' => $data['stock_percent'], 'other' => $data['other_percent']];
+            unset($data['cash_percent'], $data['stock_percent'], $data['other_percent']);
         }
         if ($section === 'watchlist') {
             WatchlistItem::firstOrCreate(['user_id' => $request->user()->id, 'instrument_id' => $data['instrument_id']]);

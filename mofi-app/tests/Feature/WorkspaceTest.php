@@ -82,6 +82,24 @@ class WorkspaceTest extends TestCase
             ->assertSessionHasErrors(['kind', 'from']);
     }
 
+    public function test_strategy_and_simulation_saves_are_user_scoped_and_validate_allocation(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        $this->actingAs($user)->post('/workspace/strategies', [
+            'name' => 'Cân bằng mới', 'risk_profile' => 'balanced', 'cash_percent' => 30, 'stock_percent' => 50, 'other_percent' => 20,
+        ])->assertRedirect();
+        $this->assertDatabaseHas('investment_strategies', ['user_id' => $user->id, 'name' => 'Cân bằng mới']);
+        $this->post('/workspace/strategies', [
+            'name' => 'Sai tỷ trọng', 'risk_profile' => 'balanced', 'cash_percent' => 20, 'stock_percent' => 20, 'other_percent' => 20,
+        ])->assertStatus(422);
+        $this->post('/workspace/scenarios', [
+            'name' => 'VN-Index giảm 20%', 'shock_percent' => 20, 'before_value' => '10000000', 'after_value' => '8000000', 'change_value' => '-2000000',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('simulation_scenarios', ['user_id' => $user->id, 'shock_percent' => 20]);
+        $this->actingAs($other)->get('/strategies')->assertInertia(fn (Assert $page) => $page->has('strategies', 0));
+    }
+
     public function test_register_normalizes_email_creates_empty_portfolio_and_rejects_duplicate(): void
     {
         $this->post('/register', ['name' => 'Người thử', 'email' => ' New@Example.com ', 'password' => 'secure-test-password', 'password_confirmation' => 'secure-test-password'])->assertRedirect('/dashboard');

@@ -333,3 +333,5 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - [x] Full suite sau các thay đổi: 75 tests, 74 passed, 1 skipped; focused workspace: 12 passed.
 - [x] Admin có tìm kiếm/lọc tài khoản theo tên/email/trạng thái và tìm mã tài sản theo mã/tên; phân trang tiếp tục giữ nguyên.
 - [x] Goal card hiển thị hạn, trạng thái quá hạn/hoàn thành và số tiền cần bổ sung mỗi tháng nếu có ngày dự kiến.
+- [x] Strategy Studio có migration/model/factory, validation tổng tỷ trọng 100% và lưu theo user.
+- [x] Investment Lab có lưu kịch bản shock, hiển thị lịch sử kịch bản theo user và không ghi transaction.
