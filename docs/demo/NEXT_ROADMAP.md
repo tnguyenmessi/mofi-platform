@@ -253,3 +253,12 @@ MOFI chưa phải website chứng khoán thực tế. Đã có mô hình danh m�
 - Xác nhận giao dịch vẫn là tiền ảo, không kết nối tiền thật.
 
 Sau khi duyệt, triển khai theo P0 trước để ổn định luồng lõi, sau đó làm design system và dashboard trước khi mở rộng Strategy Studio, Investment Lab và Community.
+
+### Cập nhật P0 (18/09/2026)
+
+- [x] Đã kiểm tra browser: đăng nhập demo và mở trang Giao dịch.
+- [x] Đã tái hiện và xử lý trạng thái chọn Mua; không còn crash trắng khi market rỗng.
+- [x] Đã thêm Error Boundary và trạng thái lỗi rõ ràng cho workspace.
+- [x] Đã thêm xem trước giá trị, phí, thuế và tổng thanh toán trước khi ghi giao dịch.
+- [x] Đã build frontend và chạy `70 passed, 1 skipped`.
+- [ ] Còn lại: kiểm thử submit Mua/Bán trong browser sau khi người dùng xác nhận demo fixture được phép ghi thêm giao dịch.
