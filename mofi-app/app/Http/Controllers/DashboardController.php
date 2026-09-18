@@ -20,20 +20,33 @@ class DashboardController extends Controller
     {
         $user = $request->user();
         $portfolio = $user->portfolio()->firstOrCreate(['user_id' => $user->id], ['name' => 'Danh mục VND của tôi', 'currency' => 'VND']);
-        $market = Cache::remember('mofi.demo.market.'.config('demo.simulation_date'), now()->addMinutes(2), function () {
+        $page = $request->path();
+        $dashboard = $page === 'dashboard';
+        $marketPages = $dashboard || in_array($page, ['transactions', 'portfolio', 'market', 'watchlist', 'alerts'], true);
+        $goalsPages = $dashboard || in_array($page, ['goals'], true);
+        $assetsPages = $dashboard || $page === 'assets';
+        $tasksPages = $dashboard || $page === 'tasks';
+        $alertsPages = $dashboard || $page === 'alerts';
+        $notificationsPages = $dashboard || $page === 'notifications';
+        $learningPages = $dashboard || $page === 'learn';
+        $fullSummaryPages = in_array($page, ['dashboard', 'portfolio', 'assets', 'copilot', 'simulation'], true);
+        $summaryData = $fullSummaryPages
+            ? Cache::remember(PortfolioSummary::cacheKey($portfolio), now()->addSeconds(15), fn () => $summary->forPortfolio($portfolio))
+            : ['portfolio_id' => $portfolio->id, 'as_of' => config('demo.simulation_date'), 'cash' => $page === 'transactions' ? (string) $portfolio->transactions()->sum('cash_delta') : '0.00000000', 'holdings' => [], 'history' => [], 'status' => 'partial', 'total_assets' => null, 'securities_value' => null, 'total_pnl' => null];
+        $market = $marketPages ? Cache::remember('mofi.demo.market.'.config('demo.simulation_date'), now()->addMinutes(2), function () {
             return Instrument::with(['marketPrices' => fn ($q) => $q->where('price_date', '<=', config('demo.simulation_date'))->where('is_demo', true)->where('source', 'demo')->orderByDesc('price_date')->limit(30)])->orderBy('id')->get();
-        });
+        }) : collect();
 
         return Inertia::render('Workspace', [
             'page' => $request->path(), 'user' => $user->only('id', 'name', 'email'),
-            'summary' => Cache::remember(PortfolioSummary::cacheKey($portfolio), now()->addSeconds(15), fn () => $summary->forPortfolio($portfolio)), 'market' => $market,
-            'transactions' => $portfolio->transactions()->with('instrument')->orderByDesc('id')->paginate(20)->withQueryString(),
-            'goals' => $user->goals()->orderBy('id')->get(), 'assets' => $user->manualAssets()->get(),
-            'watchlist' => WatchlistItem::where('user_id', $user->id)->get(),
-            'tasks' => Task::where('user_id', $user->id)->orderBy('id')->get(),
-            'alerts' => AlertRule::with('instrument')->where('user_id', $user->id)->get(),
-            'notifications' => Notification::where('user_id', $user->id)->latest()->limit(100)->get(),
-            'learning' => LearningProgress::where('user_id', $user->id)->pluck('lesson_slug'),
+            'summary' => $summaryData, 'market' => $market,
+            'transactions' => $page === 'transactions' ? $portfolio->transactions()->with('instrument')->orderByDesc('id')->paginate(20)->withQueryString() : ['data' => [], 'current_page' => 1, 'last_page' => 1],
+            'goals' => $goalsPages ? $user->goals()->orderBy('id')->get() : [], 'assets' => $assetsPages ? $user->manualAssets()->get() : [],
+            'watchlist' => $marketPages ? WatchlistItem::where('user_id', $user->id)->get() : [],
+            'tasks' => $tasksPages ? Task::where('user_id', $user->id)->orderBy('id')->get() : [],
+            'alerts' => $alertsPages ? AlertRule::with('instrument')->where('user_id', $user->id)->get() : [],
+            'notifications' => $notificationsPages ? Notification::where('user_id', $user->id)->latest()->limit(100)->get() : [],
+            'learning' => $learningPages ? LearningProgress::where('user_id', $user->id)->pluck('lesson_slug') : [],
         ]);
     }
 }

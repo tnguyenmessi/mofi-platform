@@ -262,3 +262,10 @@ Sau khi duyệt, triển khai theo P0 trước để ổn định luồng lõi, 
 - [x] Đã thêm xem trước giá trị, phí, thuế và tổng thanh toán trước khi ghi giao dịch.
 - [x] Đã build frontend và chạy `70 passed, 1 skipped`.
 - [ ] Còn lại: kiểm thử submit Mua/Bán trên tài khoản kiểm thử riêng; không cần thay đổi fixture A/B.
+
+### Cập nhật hiệu năng P2
+
+- [x] Tách truy vấn workspace theo trang; trang giao dịch không tải goals/assets/alerts/learning không cần thiết.
+- [x] Trang không cần định giá đầy đủ dùng summary rút gọn.
+- [x] Cập nhật test để phân biệt trang cần summary đầy đủ và trang chỉ cần dữ liệu riêng.
+- [ ] Độ trễ phiên browser vẫn khoảng 10 giây; cần chuyển Supabase sang connection pooler và đo lại sau khi đổi endpoint.

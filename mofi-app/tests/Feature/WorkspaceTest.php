@@ -55,7 +55,11 @@ class WorkspaceTest extends TestCase
         $user = User::where('email', 'demo@mofi.local')->firstOrFail();
         $this->actingAs($user);
         foreach (['dashboard', 'assets', 'portfolio', 'transactions', 'goals', 'market', 'watchlist', 'tasks', 'alerts', 'notifications', 'copilot', 'strategies', 'simulation', 'learn', 'community', 'settings'] as $route) {
-            $this->get('/'.$route)->assertOk()->assertInertia(fn (Assert $page) => $page->component('Workspace', false)->where('user.id', $user->id)->where('summary.total_assets', '38315000.00000000'));
+            $response = $this->get('/'.$route)->assertOk();
+            $response->assertInertia(fn (Assert $page) => $page->component('Workspace', false)->where('user.id', $user->id));
+            if (in_array($route, ['dashboard', 'assets', 'portfolio', 'copilot', 'simulation'], true)) {
+                $response->assertInertia(fn (Assert $page) => $page->where('summary.total_assets', '38315000.00000000'));
+            }
         }
         $empty = User::where('email', 'empty@mofi.local')->firstOrFail();
         $this->actingAs($empty)->get('/dashboard')->assertInertia(fn (Assert $page) => $page->where('summary.total_assets', '0.00000000')->has('goals', 0)->has('transactions.data', 0));
