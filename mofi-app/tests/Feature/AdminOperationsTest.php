@@ -43,6 +43,19 @@ class AdminOperationsTest extends TestCase
         $this->get('/admin')->assertOk()->assertSee('Nhật ký quản trị')->assertSee('Mở khóa tài khoản');
     }
 
+    public function test_admin_can_filter_users_and_instruments(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $member = User::factory()->create(['name' => 'Người cần tìm', 'email' => 'find@example.com']);
+        $member->forceFill(['active' => false])->save();
+        $instrument = Instrument::factory()->create(['symbol' => 'FIND']);
+
+        $this->actingAs($admin)->get('/admin?user_search=find&active=0')
+            ->assertOk()->assertSee('find@example.com')->assertDontSee($admin->email);
+        $this->get('/admin?instrument_search=FIND')
+            ->assertOk()->assertSee('FIND');
+    }
+
     public function test_locked_member_cannot_login_or_use_existing_session(): void
     {
         $member = User::factory()->create(['active' => false, 'password' => 'locked-test-password']);

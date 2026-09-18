@@ -15,10 +15,29 @@ class AdminController extends Controller
 {
     public function __invoke(Request $request): View
     {
+        $filters = $request->validate([
+            'user_search' => ['nullable', 'string', 'max:120'],
+            'active' => ['nullable', 'in:0,1'],
+            'instrument_search' => ['nullable', 'string', 'max:40'],
+        ]);
+        $usersQuery = User::select(['id', 'name', 'email', 'role', 'active'])->orderBy('id');
+        if (! empty($filters['user_search'])) {
+            $term = $filters['user_search'];
+            $usersQuery->where(fn ($query) => $query->where('name', 'like', '%'.$term.'%')->orWhere('email', 'like', '%'.$term.'%'));
+        }
+        if (array_key_exists('active', $filters) && $filters['active'] !== null) {
+            $usersQuery->where('active', (bool) $filters['active']);
+        }
+        $instrumentsQuery = Instrument::withCount('marketPrices')->orderBy('symbol');
+        if (! empty($filters['instrument_search'])) {
+            $term = $filters['instrument_search'];
+            $instrumentsQuery->where(fn ($query) => $query->where('symbol', 'like', '%'.$term.'%')->orWhere('name', 'like', '%'.$term.'%'));
+        }
+
         return view('admin', [
             'admin' => $request->user(),
-            'users' => User::select(['id', 'name', 'email', 'role', 'active'])->orderBy('id')->paginate(20, ['*'], 'users_page')->withQueryString(),
-            'instruments' => Instrument::withCount('marketPrices')->orderBy('symbol')->paginate(20, ['*'], 'instruments_page')->withQueryString(),
+            'users' => $usersQuery->paginate(20, ['*'], 'users_page')->withQueryString(),
+            'instruments' => $instrumentsQuery->paginate(20, ['*'], 'instruments_page')->withQueryString(),
             'stats' => ['users' => User::count(), 'instruments' => Instrument::count(), 'prices' => MarketPrice::count()],
             'logs' => DB::table('admin_audit_logs')->orderByDesc('id')->paginate(20, ['*'], 'logs_page')->withQueryString(),
         ]);
