@@ -30,6 +30,10 @@ class PaperTradingService
             if ($candle === null) {
                 $this->reject('tick', 'Phiên mô phỏng không tồn tại.');
             }
+            $replay = DB::table('replay_ticks')->where('portfolio_id', $locked->id)->where('instrument_id', $instrument->id)->lockForUpdate()->first();
+            if ($replay !== null && $tick <= $replay->current_tick) {
+                $this->reject('tick', 'Phiên mô phỏng này đã được xử lý. Hãy chuyển sang tick tiếp theo.');
+            }
             $results = [];
             $capacity = BigDecimal::of($candle['volume'])->dividedBy(10, 8, RoundingMode::Down);
             foreach ($locked->orders()->where('instrument_id', $instrument->id)->whereIn('status', ['OPEN', 'PARTIALLY_FILLED'])->with('reservation')->lockForUpdate()->get() as $order) {
@@ -43,6 +47,10 @@ class PaperTradingService
                 $results[] = $this->fill($order, $order->reservation, $instrument, $price, $quantity);
                 $capacity = $capacity->minus($quantity);
             }
+            DB::table('replay_ticks')->updateOrInsert(
+                ['portfolio_id' => $locked->id, 'instrument_id' => $instrument->id],
+                ['current_tick' => $tick, 'updated_at' => now(), 'created_at' => $replay?->created_at ?? now()],
+            );
             DB::afterCommit(fn () => PortfolioSummary::forget($locked));
 
             return ['tick' => $tick, 'filled' => $results];
@@ -117,7 +125,7 @@ class PaperTradingService
         return DB::transaction(function () use ($order): Order {
             $portfolio = Portfolio::whereKey($order->portfolio_id)->lockForUpdate()->firstOrFail();
             $order = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
-            if ($order->status === 'OPEN') {
+            if (in_array($order->status, ['OPEN', 'PARTIALLY_FILLED'], true)) {
                 $order->update(['status' => 'CANCELLED', 'cancelled_at' => now()]);
                 $order->reservation?->update(['released_at' => now()]);
             }
@@ -142,8 +150,12 @@ class PaperTradingService
         if ($complete) {
             $reservation->update(['released_at' => now()]);
         } else {
-            $ratio = BigDecimal::of($order->quantity)->minus($filled)->dividedBy($order->quantity, 8, RoundingMode::HalfUp);
-            $reservation->update(['cash_amount' => (string) BigDecimal::of($reservation->cash_amount)->multipliedBy($ratio), 'quantity' => (string) BigDecimal::of($reservation->quantity)->multipliedBy($ratio)]);
+            $remaining = BigDecimal::of($order->quantity)->minus($filled);
+            $cash = $order->side === 'BUY'
+                ? $remaining->multipliedBy($order->limit_price)->toScale(0, RoundingMode::HalfUp)
+                : BigDecimal::zero();
+            $quantityReservation = $order->side === 'SELL' ? $remaining : BigDecimal::zero();
+            $reservation->update(['cash_amount' => (string) $cash, 'quantity' => (string) $quantityReservation]);
         }
 
         return ['order_id' => (string) $order->id, 'quantity' => (string) $quantity, 'status' => $complete ? 'FILLED' : 'PARTIALLY_FILLED'];

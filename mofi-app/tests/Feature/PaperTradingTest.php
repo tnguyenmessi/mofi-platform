@@ -100,6 +100,8 @@ class PaperTradingTest extends TestCase
         [, $portfolio, $instrument] = $this->fixture();
         $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])
             ->assertOk()->assertJsonPath('data.tick', 0)->assertJsonPath('data.filled', []);
+        $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])
+            ->assertUnprocessable()->assertJsonValidationErrors('tick');
         $other = User::factory()->create();
         $this->actingAs($other)->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])->assertNotFound();
     }
@@ -117,8 +119,18 @@ class PaperTradingTest extends TestCase
             ->assertOk()->assertJsonPath('data.filled.0.status', 'PARTIALLY_FILLED')->assertJsonPath('data.filled.0.quantity', '100.00000000');
         $this->assertDatabaseHas('orders', ['id' => $order->json('data.id'), 'status' => 'PARTIALLY_FILLED', 'filled_quantity' => '100.00000000']);
         $this->assertDatabaseCount('executions', 1);
-        $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])
+        $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 1])
             ->assertOk()->assertJsonPath('data.filled.0.status', 'FILLED')->assertJsonPath('data.filled.0.quantity', '50.00000000');
         $this->assertDatabaseCount('executions', 2);
+    }
+
+    public function test_cancel_partial_fill_releases_remaining_reservation(): void
+    {
+        [, $portfolio, $instrument] = $this->fixture();
+        $order = $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id, ['quantity' => '115']))->assertCreated();
+        $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])->assertOk();
+        $this->assertDatabaseHas('orders', ['id' => $order->json('data.id'), 'status' => 'PARTIALLY_FILLED']);
+        $this->postJson(route('api.v1.orders.cancel', $order->json('data.id')))->assertOk()->assertJsonPath('data.status', 'CANCELLED');
+        $this->assertNotNull(Order::find($order->json('data.id'))->reservation->released_at);
     }
 }
