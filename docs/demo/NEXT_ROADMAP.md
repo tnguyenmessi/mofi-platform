@@ -419,4 +419,4 @@ Paper trading không yêu cầu API thật. API thật chỉ cần cho quote th�
 - [x] Test limit OPEN/reservation, market fill/replay, thiếu vị thế, cross-owner và cancel idempotent.
 - [x] Full suite sau phần lõi: 92 pass, 1 skipped; TypeScript, Pint và Vite build đạt.
 
-Phần paper trading lõi đã hoàn tất: volume histogram, khoảng thời gian chart, advance tick endpoint và partial fill đều có. Các hạng mục sau demo còn lại là broker thật, provider giá thật, benchmark và AI provider có kiểm soát.
+Phần paper trading lõi đã hoàn tất: volume histogram, khoảng thời gian chart, advance tick endpoint, tick monotonic và partial fill/hủy phần còn lại đều có. Các hạng mục sau demo còn lại là broker thật, provider giá thật, benchmark và AI provider có kiểm soát.
