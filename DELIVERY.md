@@ -62,6 +62,7 @@
 ## Demo runbook
 
 - Kịch bản trình bày, thuật toán, câu hỏi phản biện và lệnh kiểm thử: `docs/demo/DEMO_RUNBOOK.md`.
+- Kịch bản bấm từng nút, nội dung cần nói và xử lý sự cố: `docs/demo/DEMO_SCRIPT_DETAILED.md`.
 - Tài khoản/mật khẩu local: `mofi-app/.local-demo-credentials.md` (Git ignored, không public).
 
 ## Local commands
