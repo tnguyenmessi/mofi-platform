@@ -27,6 +27,8 @@
 - Market UI visibly exposes the simulated OHLC candle chart, 7/14/30-day ranges, volume/depth area, paper-order form and the separate Binance public crypto preview.
 - Admin smoke test passed: admin login, `/admin`, health check (`Database`, `Cache`, `Danh mục`, `Giá mô phỏng` all `Sẵn sàng`), account table and instrument catalogue.
 - Full final checks passed: PHPUnit `96 tests / 95 passed / 1 skipped / 1092 assertions`, TypeScript check, and Vite production build. The one skipped test is the opt-in PostgreSQL concurrency suite; it was previously executed separately and passed.
+- Replay synchronization was hardened after reload: the market page now reads the server's last processed tick, shows `Tiến phiên 1` (or the next valid tick), reports API validation errors, and preserves cancellation for both `OPEN` and `PARTIALLY_FILLED` orders.
+- Acceptance PostgreSQL concurrency test was rerun with native and emulated prepares: `1 passed / 16 assertions` in each mode. The final SQLite suite is now `96 tests / 95 passed / 1 skipped / 1097 assertions` after adding replay metadata coverage.
 
 - Full PHPUnit: 96 tests, 95 passed, 1 skipped with the bundled SQLite extension enabled; the opt-in local PostgreSQL concurrency test is run separately.
 - TypeScript check and Vite production build pass.

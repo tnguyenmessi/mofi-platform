@@ -8,6 +8,7 @@ use App\Models\Portfolio;
 use App\Services\PaperTradingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class OrderController extends Controller
@@ -22,7 +23,10 @@ class OrderController extends Controller
             ->when($request->filled('instrument_id'), fn ($query) => $query->where('instrument_id', $request->integer('instrument_id')))
             ->latest('id')->paginate(min(100, $request->integer('per_page', 25)));
 
-        return response()->json(['data' => $orders->items(), 'meta' => ['current_page' => $orders->currentPage(), 'last_page' => $orders->lastPage()]], 200, ['Cache-Control' => 'private, no-store']);
+        $replayTicks = DB::table('replay_ticks')->where('portfolio_id', $portfolio->id)
+            ->pluck('current_tick', 'instrument_id');
+
+        return response()->json(['data' => $orders->items(), 'meta' => ['current_page' => $orders->currentPage(), 'last_page' => $orders->lastPage(), 'replay_ticks' => $replayTicks]], 200, ['Cache-Control' => 'private, no-store']);
     }
 
     public function store(StoreOrderRequest $request, Portfolio $portfolio, PaperTradingService $trading): JsonResponse

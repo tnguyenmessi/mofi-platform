@@ -100,10 +100,14 @@ class PaperTradingTest extends TestCase
         [, $portfolio, $instrument] = $this->fixture();
         $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])
             ->assertOk()->assertJsonPath('data.tick', 0)->assertJsonPath('data.filled', []);
+        $this->getJson(route('api.v1.orders.index', $portfolio))
+            ->assertOk()->assertJsonPath('meta.replay_ticks.'.$instrument->id, 0)
+            ->assertHeader('Cache-Control', 'no-store, private');
         $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])
             ->assertUnprocessable()->assertJsonValidationErrors('tick');
         $other = User::factory()->create();
         $this->actingAs($other)->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])->assertNotFound();
+        $this->getJson(route('api.v1.orders.index', $portfolio))->assertNotFound();
     }
 
     public function test_advance_replay_partially_fills_by_tick_capacity(): void
