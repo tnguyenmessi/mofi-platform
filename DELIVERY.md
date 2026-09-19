@@ -19,6 +19,15 @@
 
 ## Verification completed
 
+### Final acceptance pass (2026-09-19)
+
+- Fixed local demo login configuration: the `#` in `DEMO_LOGIN_PASSWORD` is now quoted in `mofi-app/.env`; after reseeding, `demo@mofi.local` and the documented password authenticate successfully.
+- Browser smoke test passed on `http://127.0.0.1:8000`: login, dashboard, all 15 authenticated routes, market, transactions and admin.
+- Authenticated route matrix passed with no server error, browser error logs or horizontal overflow: `/assets`, `/portfolio`, `/transactions`, `/goals`, `/market`, `/watchlist`, `/alerts`, `/notifications`, `/tasks`, `/copilot`, `/strategies`, `/simulation`, `/learn`, `/community`, `/settings`.
+- Market UI visibly exposes the simulated OHLC candle chart, 7/14/30-day ranges, volume/depth area, paper-order form and the separate Binance public crypto preview.
+- Admin smoke test passed: admin login, `/admin`, health check (`Database`, `Cache`, `Danh mục`, `Giá mô phỏng` all `Sẵn sàng`), account table and instrument catalogue.
+- Full final checks passed: PHPUnit `96 tests / 95 passed / 1 skipped / 1092 assertions`, TypeScript check, and Vite production build. The one skipped test is the opt-in PostgreSQL concurrency suite; it was previously executed separately and passed.
+
 - Full PHPUnit: 96 tests, 95 passed, 1 skipped with the bundled SQLite extension enabled; the opt-in local PostgreSQL concurrency test is run separately.
 - TypeScript check and Vite production build pass.
 - PostgreSQL concurrency test passes with native and emulated prepares.
