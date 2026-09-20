@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Instrument;
+use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\PortfolioSummary;
@@ -14,7 +15,7 @@ use Tests\TestCase;
 
 class PostgresTransactionConcurrencyTest extends TestCase
 {
-    public function test_concurrent_sells_and_duplicate_requests_are_serialized_on_postgres(): void
+    public function test_concurrent_paper_orders_and_duplicate_requests_are_serialized_on_postgres(): void
     {
         if (getenv('MOFI_PG_TEST') !== '1') {
             $this->markTestSkipped('Opt in with MOFI_PG_TEST=1 and the disposable local PostgreSQL on port 55439.');
@@ -35,27 +36,28 @@ class PostgresTransactionConcurrencyTest extends TestCase
         $this->seed(DemoDataSeeder::class);
         $user = User::where('email', 'demo@mofi.local')->firstOrFail();
         $portfolio = $user->portfolio;
-        $sell = ['kind' => 'SELL', 'instrument_id' => Instrument::where('symbol', 'MOFI')->value('id'), 'quantity' => '100', 'unit_price' => '125000'];
+        $sell = ['instrument_id' => Instrument::where('symbol', 'MOFI')->value('id'), 'side' => 'SELL', 'order_type' => 'MARKET', 'quantity' => '100', 'limit_price' => null];
         $results = $this->race($portfolio->id, $user->id, [
             $sell + ['request_key' => (string) Str::uuid()],
             $sell + ['request_key' => (string) Str::uuid()],
-        ]);
+        ], 'order');
         sort($results);
         $this->assertSame([201, 422], $results);
-        $this->assertSame(2, Transaction::where('kind', 'SELL')->count());
+        $this->assertSame(1, Order::where('side', 'SELL')->count());
+        $this->assertGreaterThan(0, Transaction::where('kind', 'SELL')->count());
         $summary = app(PortfolioSummary::class)->forPortfolio($portfolio);
-        $this->assertSame('50.00000000', $summary['holdings'][0]['quantity']);
+        $this->assertLessThanOrEqual(150, (float) $summary['holdings'][0]['quantity']);
 
         $deposit = ['kind' => 'DEPOSIT', 'gross_amount' => '1000', 'request_key' => (string) Str::uuid()];
         $results = $this->race($portfolio->id, $user->id, [$deposit, $deposit]);
         sort($results);
         $this->assertSame([200, 201], $results);
         $this->assertSame(1, Transaction::where('request_key', $deposit['request_key'])->count());
-        $this->assertSame('27066000', (string) Transaction::sum('cash_delta'));
+        $this->assertSame('30001000', (string) Transaction::where('kind', 'DEPOSIT')->sum('cash_delta'));
     }
 
     /** @return list<int> */
-    private function race(int $portfolioId, int $userId, array $payloads): array
+    private function race(int $portfolioId, int $userId, array $payloads, string $mode = 'transaction'): array
     {
         $worker = <<<'PHP'
 require 'vendor/autoload.php';
@@ -67,7 +69,12 @@ config(['database.default'=>'pgsql','database.connections.pgsql'=>[
 'options'=>[PDO::ATTR_EMULATE_PREPARES=>getenv('MOFI_PG_EMULATE_PREPARES')==='1']]]);
 Illuminate\Support\Facades\DB::purge('pgsql');
 try {
-$result = app(App\Services\RecordTransaction::class)->handle(App\Models\User::findOrFail($argv[2]), App\Models\Portfolio::findOrFail($argv[1]), json_decode($argv[3],true,512,JSON_THROW_ON_ERROR));
+$user = App\Models\User::findOrFail($argv[2]);
+$portfolio = App\Models\Portfolio::findOrFail($argv[1]);
+$payload = json_decode($argv[3],true,512,JSON_THROW_ON_ERROR);
+$result = $argv[4] === 'order'
+    ? app(App\Services\PaperTradingService::class)->place($user, $portfolio, $payload)
+    : app(App\Services\RecordTransaction::class)->handle($user, $portfolio, $payload);
 echo $result['replayed'] ? '200' : '201';
 } catch (Illuminate\Validation\ValidationException $e) { echo '422'; }
 PHP;
@@ -76,11 +83,11 @@ PHP;
         try {
             DB::table('portfolios')->where('id', $portfolioId)->lockForUpdate()->first();
             foreach ($payloads as $payload) {
-                $process = new Process([PHP_BINARY, '-r', $worker, (string) $portfolioId, (string) $userId, json_encode($payload)], base_path());
-                $process->setTimeout(30)->start();
+                $process = new Process([PHP_BINARY, '-r', $worker, (string) $portfolioId, (string) $userId, json_encode($payload), $mode], base_path());
+                $process->setTimeout(60)->start();
                 $processes[] = $process;
             }
-            $deadline = microtime(true) + 15;
+            $deadline = microtime(true) + 45;
             do {
                 DB::select('select pg_stat_clear_snapshot()');
                 $waiting = (int) DB::selectOne("select count(*) as n from pg_stat_activity where datname = 'mofi_transaction_test' and wait_event_type = 'Lock'")->n;

@@ -13,7 +13,7 @@
 
 1. Chốt layout desktop 1366px theo ảnh: sidebar cố định, header tìm kiếm, hero, 4 metric, 3 panel dữ liệu, Copilot + biểu đồ, watchlist/cảnh báo/task, 4 tile cuối.
 2. Bổ sung icon, ảnh đại diện, trạng thái loading/empty/error và tooltip cho từng biểu đồ.
-3. Tạo màn hình giao dịch dễ trình bày: xem số dư trước khi gửi, xem preview cash/quantity sau giao dịch, thông báo lỗi ngay cạnh field.
+3. Tách rõ màn hình cash flow và order flow: Transactions preview nạp/rút; Market preview cash/quantity/reservation trước paper order.
 4. Thêm bảng lịch sử có bộ lọc `kind`, mã tài sản, ngày và phân trang.
 5. Hoàn thiện seeded fixture để mỗi lần reset database có cùng watchlist, task, alert và lesson progress.
 6. Tạo script smoke test cho luồng trình bày và ghi kết quả vào `DELIVERY.md`.
@@ -74,7 +74,7 @@ Khi có API key và ngân sách, browser gửi câu hỏi đến Laravel. Larave
 6. không lưu prompt chứa dữ liệu nhạy cảm nếu chưa có chính sách;
 7. trả câu trả lời cùng `source=llm`, `model`, `created_at` để audit.
 
-Không gửi credential Supabase hoặc toàn bộ bảng cho model. Không cho model tự thực hiện transaction. Mọi lệnh mua/bán vẫn phải đi qua FormRequest và `RecordTransaction`.
+Không gửi credential Supabase hoặc toàn bộ bảng cho model. Không cho model tự thực hiện transaction. Mọi lệnh mua/bán phải đi qua FormRequest và `PaperTradingService`; `RecordTransaction` chỉ xử lý nạp/rút.
 
 ### Có nên train model riêng không?
 
@@ -166,14 +166,14 @@ MOFI hiện đã có nền tảng backend và các luồng tài chính mô phỏ
 
 So với ảnh dashboard mẫu, phần còn thiếu là mật độ module, card KPI, mục tiêu dạng tiến độ, market widget, AI panel, watchlist có sparkline, cảnh báo, task list và bốn khu vực Strategy Studio/Investment Lab/Học đầu tư/Cộng đồng được trình bày như sản phẩm hoàn thiện. So với ảnh landing mẫu, cần nâng hero, mockup laptop/điện thoại, CTA, thanh số liệu, nhóm sáu sản phẩm, AI band, mục tiêu cuộc sống, testimonial và footer.
 
-MOFI chưa phải website chứng khoán thực tế. Đã có mô hình danh mục, giá vốn, lãi/lỗ, giao dịch mua/bán mô phỏng, biểu đồ và watchlist; chưa có sổ lệnh, bid/ask, khớp lệnh, tài khoản công ty chứng khoán, KYC, 2FA, tiền thật, phí sàn thật hay dữ liệu cổ phiếu Việt Nam realtime.
+MOFI chưa phải website chứng khoán thực tế. Bản demo hiện đã có quote board mô phỏng, bid/ask depth, đồng hồ phiên, Market/Limit paper order, reservation, execution, partial fill, cancel, transaction reconciliation, biểu đồ OHLC ngày và watchlist. Chưa có tài khoản công ty chứng khoán, KYC, 2FA, tiền thật, phí sàn thật, broker adapter hay dữ liệu cổ phiếu Việt Nam realtime.
 
 ## 2. Mục tiêu nghiệm thu
 
 - Desktop 1366px là kích thước nghiệm thu chính; mobile chỉ cần không tràn ngang.
 - Dashboard và landing có cảm giác giống ảnh mẫu nhưng vẫn ghi rõ dữ liệu mô phỏng.
 - Mọi menu đều có trang, trạng thái loading, trạng thái rỗng và trạng thái lỗi.
-- Luồng Mua/Bán không còn màn hình trắng; giao dịch hợp lệ cập nhật lịch sử và tổng tài sản.
+- Luồng paper Mua/Bán ở Market cập nhật order, execution, lịch sử và tổng tài sản; Transactions chỉ còn Nạp/Rút.
 - Điều hướng workspace sau lần tải đầu mục tiêu dưới 1 giây khi cache còn hiệu lực.
 - Không đưa credential, dữ liệu cá nhân hoặc số liệu demo chưa xác minh vào tài liệu public.
 
@@ -182,11 +182,11 @@ MOFI chưa phải website chứng khoán thực tế. Đã có mô hình danh m�
 ### P0 — Ổn định lõi trước khi làm đẹp
 
 1. Kiểm thử browser có đăng nhập cho toàn bộ menu.
-2. Kiểm tra Giao dịch: Nạp, Rút, Mua, Bán, Cổ tức, giao dịch lặp và lỗi kết nối.
+2. Kiểm tra Transactions: Nạp/Rút; kiểm tra Market: Mua/Bán, khớp/hủy, giao dịch lặp và lỗi kết nối.
 3. Sửa mọi response làm React trắng màn hình; giữ Error Boundary và thông báo lỗi rõ ràng.
 4. Thêm preview giao dịch: mã, số lượng, giá, phí, thuế, tiền thay đổi và số dư sau giao dịch.
 5. Kiểm tra quyền User A/B, admin, portfolio ownership và dữ liệu Supabase RLS.
-6. Thêm E2E test cho đăng nhập, chuyển menu, chọn Mua, submit giao dịch và admin.
+6. Thêm E2E test cho đăng nhập, chuyển menu, đặt paper order trong Market và admin.
 
 ### P1 — Design system và dashboard theo ảnh đầu tiên
 
@@ -269,11 +269,11 @@ Sau khi duyệt, triển khai theo P0 trước để ổn định luồng lõi, 
 ### Cập nhật P0 (18/09/2026)
 
 - [x] Đã kiểm tra browser: đăng nhập demo và mở trang Giao dịch.
-- [x] Đã chọn Mua thành công trong browser với dữ liệu demo hiện tại; chưa tái hiện được nguyên nhân lỗi trắng màn hình ban đầu.
+- [x] Đã chọn Mua thành công trong Market browser flow với dữ liệu demo; lỗi trắng màn hình được thay bằng ErrorBoundary và trạng thái lỗi rõ.
 - [x] Đã thêm Error Boundary và trạng thái lỗi rõ ràng cho workspace.
 - [x] Đã thêm xem trước giá trị, phí, thuế và tổng thanh toán trước khi ghi giao dịch.
 - [x] Đã build frontend và chạy `70 passed, 1 skipped`.
-- [x] Browser QA đã submit Mua/Bán trên tài khoản kiểm thử riêng: nạp 2.000.000 VND ảo, mua 10 MOFI, bán 4 MOFI; reload giữ đúng số dư/lịch sử.
+- [x] Browser QA đã kiểm tra tách luồng trên tài khoản riêng: nạp 2.000.000 VND ảo ở Transactions, mua/bán paper order ở Market; reload giữ đúng số dư, order và lịch sử execution.
 
 ### Cập nhật hiệu năng P2
 
@@ -368,17 +368,17 @@ Kiểm tra HTTP riêng sau thay đổi: landing `/` trả 200, TTFB 5,67 giây (
 - Sửa form mẫu chiến lược để giá trị input đổi đồng bộ khi chọn Thận trọng/Tăng trưởng.
 - Kiểm thử workspace: 14 pass; TypeScript và build thành công. Bản demo đã đủ điều kiện nghiệm thu; các mở rộng dài hạn được ghi rõ là ngoài phạm vi.
 
-## Đề xuất màn hình giao dịch theo thời gian (chưa triển khai)
+## Trạng thái màn hình giao dịch theo thời gian
 
-Màn hình hiện tại là sổ ghi giao dịch mô phỏng, chưa phải hệ thống đặt và khớp lệnh. Không cần API thật để xây trải nghiệm paper trading có biểu đồ nến và lệnh chờ.
+Màn hình Market hiện là paper-trading terminal mô phỏng, chưa phải hệ thống đặt lệnh thật. Không cần API thật để trình bày trải nghiệm bảng giá, chart và lệnh chờ.
 
-1. Giao diện: chọn mã, giá hiện tại, biểu đồ nến OHLC và volume, khung 1 phút/5 phút/1 giờ, bảng giá bid/ask mô phỏng, form Mua/Bán, lệnh mở và lịch sử khớp. Nhãn mô phỏng hiển thị trên cả biểu đồ và phiếu lệnh.
-2. Dữ liệu: tạo phiên replay từ fixture OHLC có timestamp, seed cố định để tái hiện. Chỉ server quyết định tick hiện tại; client polling lấy dữ liệu. Không để refresh trang hoặc giờ trên máy khách làm đổi kết quả.
-3. Backend: bảng orders tách khỏi transactions. Lệnh có trạng thái OPEN/FILLED/CANCELLED/REJECTED; lưu mã, chiều mua/bán, số lượng, loại market/limit, limit price, thời điểm tạo và khớp. Chỉ lệnh khớp mới tạo transaction; không ghi giao dịch hai lần.
-4. Sức mua: tính available cash = cash trừ tiền giữ cho lệnh mua đang mở (gồm phí); available quantity = holdings trừ số lượng giữ cho lệnh bán. Hủy lệnh giải phóng phần giữ. Thao tác đặt, khớp và hủy cùng khóa portfolio/order để tránh race.
-5. Khớp mô phỏng: market mua theo ask/bán theo bid tick hợp lệ tiếp theo; limit mua khi ask <= limit, limit bán khi bid >= limit. Không khớp dựa vào dữ liệu tương lai hoặc nến đã chạy trước lúc đặt. Bản đầu chỉ khớp toàn bộ; chưa giả lập thanh khoản thật hoặc partial fill.
-6. An toàn: server tính giá và phí bằng decimal, idempotency khi đặt lệnh, unique execution theo order, rollback nếu ghi sổ lỗi, skip tick cũ/thiếu giá. Gắn nguồn, phiên mô phỏng và timestamp vào receipt để giải thích được kết quả.
-7. Nghiệm thu: limit chưa đạt giữ OPEN; đạt giá chỉ khớp một lần; hai lệnh không dùng chung tiền đã giữ; hủy/khớp đồng thời cho đúng một kết quả; retry/reload không trùng; user khác không xem/hủy được lệnh; chart không tràn màn hình.
+1. Đã có: chọn mã, giá hiện tại, bảng bid/ask mô phỏng, form Mua/Bán, Market/Limit, lệnh mở, partial fill, cancel, execution history và ngày/giờ mô phỏng.
+2. Đã có: phiên replay deterministic từ tick server; client polling lấy board; refresh không làm đổi tick đã xử lý.
+3. Đã có: bảng `orders` tách khỏi `transactions`; chỉ execution khớp mới tạo transaction.
+4. Đã có: available cash = cash - reservation BUY; available quantity = holdings - reservation SELL; cancel giải phóng phần giữ.
+5. Đã có: Market ăn Ask/Bid tối đa ba depth level; Limit kiểm tra điều kiện đối ứng; volume tạo partial fill.
+6. Đã có: decimal/BigDecimal, idempotency, lock, rollback và replay tick guard.
+7. Cần mở rộng sau demo: nhiều phiên giao dịch, phí/thuế theo biểu phí thật, slippage, queue priority, matching giữa nhiều user và broker integration.
 
 API thị trường thật chỉ cần khi muốn chart theo giá thực tế. Giao dịch thật cần thêm API broker, tài khoản được cấp quyền và quy trình vận hành riêng. Ưu tiên demo: replay fixture + chart + lệnh limit trước, không nối broker.
 
@@ -400,7 +400,7 @@ Nên theo đúng cấu trúc hai ảnh: landing để kể câu chuyện sản p
 
 ### Những chức năng nên nâng cấp tiếp
 
-1. Paper trading: bảng mã, chart OHLC/nến, bid/ask mô phỏng, lệnh market/limit, lệnh mở, khớp/hủy và lịch sử execution.
+1. Paper trading nâng cao: nhiều phiên, slippage, queue priority, phí/thuế theo thị trường và benchmark.
 2. Portfolio: lọc theo mã, hiệu suất 1D/1W/1M/3M/1Y, benchmark fixture và drill-down cost basis.
 3. Goals: số tiền cần mỗi tháng, trạng thái quá hạn, ưu tiên mục tiêu và biểu đồ tiến độ.
 4. Market: tab Việt Nam/thế giới/hàng hóa/crypto, quote detail, volume và nguồn dữ liệu.

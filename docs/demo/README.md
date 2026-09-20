@@ -1,27 +1,24 @@
-# MOFI Demo 2 ngày
+# MOFI Demo — Bộ tài liệu hiện hành
 
-Phiên bản kế hoạch 1.0, ngày 17/09/2026. Bộ tài liệu này là nguồn triển khai cho bản demo đánh giá năng lực theo hai ảnh tham chiếu. Đây là đặc tả công việc sắp làm, không phải báo cáo các chức năng đã hoàn thành hay phê duyệt của sếp.
+Bộ này mô tả bản demo đã triển khai, không phải bản đặc tả dài hạn của một công ty chứng khoán.
 
-## Tài liệu có hiệu lực
+## Đọc theo thứ tự
 
-1. [Phạm vi và chức năng](SPECIFICATION.md): màn hình, thao tác, use case và quy tắc.
-2. [Database demo](DATABASE.md): ERD, bảng/cột, ràng buộc, công thức và dữ liệu mẫu.
-3. [Bàn giao và nghiệm thu](DELIVERY.md): Git, lịch hai ngày, test và kịch bản trình bày.
+1. [`SPECIFICATION.md`](SPECIFICATION.md) — phạm vi, công nghệ, màn hình và use case.
+2. [`DATABASE.md`](DATABASE.md) — bảng dữ liệu, công thức, order/reservation/execution và replay.
+3. [`BACKEND_LOGIC.md`](BACKEND_LOGIC.md) — service flow, quyền, matching và đồng hồ mô phỏng.
+4. [`DEMO_RUNBOOK.md`](DEMO_RUNBOOK.md) — lời thoại và thuật toán để trình bày.
+5. [`DEMO_SCRIPT_DETAILED.md`](DEMO_SCRIPT_DETAILED.md) — từng bước bấm trên giao diện.
+6. [`ACCEPTANCE_REPORT.md`](ACCEPTANCE_REPORT.md) — bằng chứng T01-T14 và giới hạn còn lại.
+7. [`NEXT_ROADMAP.md`](NEXT_ROADMAP.md) — hướng mở rộng sau demo.
 
-Hai file Word trong `docs/word/` là bản trình bày của nội dung này. Nội dung Markdown là nguồn cập nhật. Các tài liệu v0.1 ở thư mục `docs/` trước đây mô tả sản phẩm dài hạn; nếu khác nhau, ưu tiên bộ `docs/demo/` cho lần triển khai này. Không triển khai mô hình ledger nhiều tài khoản, reversal/rebuild revision hoặc nhiều tầng job chỉ để phục vụ demo.
+## Quyết định nghiệp vụ quan trọng
 
-## Quyết định để bắt đầu
+- `Nạp / rút tiền` chỉ tạo `DEPOSIT/WITHDRAW`.
+- `Mua/Bán` chỉ tạo paper order tại `Thị trường`; execution khớp mới sinh ledger `BUY/SELL`.
+- Bảng giá có last/reference/ceiling/floor, bid/ask depth, volume, ngày/giờ mô phỏng và tick tự cập nhật.
+- Mặc định 5 giây thật = 5 phút mô phỏng; ngày cố định `2026-09-15`.
+- Giá cổ phiếu Việt Nam là fixture/replay có nhãn; Binance là panel crypto tham khảo tách biệt.
+- Không có broker, tiền thật, KYC, thanh toán hay dữ liệu exchange realtime.
 
-- Giữ đầy đủ các khu vực trên landing và dashboard; mọi menu có trang hoặc trạng thái rõ ràng.
-- Dữ liệu người dùng, tiền, cổ phiếu, thị trường và cộng đồng đều là giả. Đăng nhập, lưu DB và tính danh mục là chức năng thật.
-- Laravel 13 + React 19 + TypeScript + Inertia + Tailwind; Recharts cho biểu đồ; PostgreSQL trên Supabase.
-- Một portfolio VND mỗi user; cash tính từ lịch sử giao dịch; không nợ/margin/FX/chuyển nhiều account.
-- Giá theo bộ dữ liệu ngày mô phỏng cố định. Không mua API hoặc triển khai giao dịch tiền thật.
-- AI, Strategy Studio, Investment Lab và cộng đồng là demo có giới hạn, không phải dịch vụ sản xuất đã hoàn chỉnh.
-- Có thể bắt đầu code nền sau tài liệu; không chờ phê duyệt tất cả quy tắc của sản phẩm tài chính dài hạn. Nếu yêu cầu mới mở rộng scope, đổi bảng phạm vi trước khi code.
-
-## Trạng thái đã kiểm tra
-
-Ngày 18/09/2026: kết nối Laravel qua PDO PostgreSQL/TLS đã chạy, migration demo và các migration quyền/RLS đã áp dụng. Demo seed, browser QA, PHPUnit, TypeScript và production build đã được kiểm tra. Credential chỉ nằm trong `.env` local bị Git ignore.
-
-Repository có workflow CI cho Pint/PHPUnit/TypeScript/Vite build. Ứng dụng chưa có hosting production; bản demo chạy local/Supabase và không triển khai giao dịch tiền thật.
+Word/PDF gửi quản lý nằm ở `docs/word/` và `docs/pdf/`.

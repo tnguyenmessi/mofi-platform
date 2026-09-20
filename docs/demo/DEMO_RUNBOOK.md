@@ -1,112 +1,123 @@
 # MOFI — Kịch bản demo với sếp
 
-## Mục tiêu trình bày
+## Mục tiêu
 
-Chứng minh ba năng lực: thiết kế sản phẩm theo ảnh tham chiếu, xây logic tài chính an toàn ở backend và nối dữ liệu vào giao diện có biểu đồ. Tất cả tiền và giá cổ phiếu Việt Nam trong buổi demo là dữ liệu mô phỏng.
+Chứng minh ba năng lực: nền tảng tài chính cá nhân, nghiệp vụ paper-trading an toàn ở backend và giao diện thị trường có bảng giá/bid-ask/đồng hồ mô phỏng. Toàn bộ tiền, giá và lệnh trong buổi demo là mô phỏng.
 
-## Chuẩn bị trước buổi demo
+## Chuẩn bị
 
-1. Mở terminal 1 và chạy `cd mofi-app; php artisan serve --host=127.0.0.1 --port=8000`.
-2. Mở terminal 2 và chạy `cd mofi-app; npm run dev`.
-3. Mở `http://127.0.0.1:8000/`.
-4. Tài khoản và mật khẩu nằm trong file local bị Git ignore: `mofi-app/.local-demo-credentials.md`. Không chiếu file này lên màn hình hoặc đưa vào GitHub.
-5. Nếu gặp `429 Too Many Requests`, không thử liên tục; chạy `php artisan cache:clear` rồi chờ khoảng một phút.
-6. Phương án dự phòng: chạy frontend bằng manifest production sau `npm run build`, giữ Laravel server đang chạy.
+1. Dùng Railway public URL để trình bày read-only, hoặc chạy local:
+
+```powershell
+cd "C:\Users\nguye\Downloads\DỰ ÁN 2\mofi-app"
+php artisan serve --host=127.0.0.1 --port=8000
+npm run dev
+```
+
+2. Tài khoản demo nằm trong `mofi-app/.local-demo-credentials.md` — file local bị Git ignore, không chiếu hoặc commit.
+3. Ngày mô phỏng cố định là `2026-09-15`. Nhịp mặc định là 5 giây thật cho mỗi tick 5 phút mô phỏng.
+4. Live Railway hiện ở `CLOSED`, `14:55`, `tick 54/54`; không gửi deposit/withdraw/order/cancel lên live nếu chưa có xác nhận ngay trước thao tác.
 
 ## Kịch bản 10 phút
 
 ### 1. Landing — 1 phút
 
-Mở trang chủ và nói: “MOFI là không gian tài chính cá nhân, tập trung vào tài sản, mục tiêu, học đầu tư và giao dịch thực hành. Bố cục lấy cảm hứng từ hai ảnh mẫu nhưng dữ liệu trong bản này được gắn nhãn mô phỏng.” Chỉ nhanh hero, mockup dashboard, market preview và các nhóm chức năng.
+Giới thiệu MOFI là không gian quản lý tài chính và đầu tư thực hành. Chỉ vào nhãn dữ liệu mô phỏng, không gọi đây là sàn chứng khoán thật.
 
-### 2. Đăng nhập và dashboard — 2 phút
+### 2. Dashboard — 2 phút
 
-Đăng nhập tài khoản demo. Chỉ ra bốn KPI: tổng tài sản, tiền mặt, chứng khoán và lãi/lỗ. Mở donut phân bổ, goal progress, market table, Copilot và portfolio chart. Nói rõ các card không tự tính riêng ở frontend; Laravel lấy cùng nguồn transaction + market fixture rồi gửi props cho React.
+Đăng nhập Demo A và chỉ vào tổng tài sản, tiền mặt khả dụng, tiền đang giữ, danh mục, P/L, mục tiêu, watchlist và lệnh chờ. Giải thích: Laravel tính summary từ ledger + quote mô phỏng; React/Inertia chỉ hiển thị.
 
-### 3. Giao dịch mua — 2 phút
+### 3. Thị trường — 2 phút
 
-Vào `/transactions`, chọn `Mua`, chọn mã `MOFI`, nhập số lượng nhỏ và giữ giá mẫu. Chỉ vào phần preview: gross, phí, thuế, tổng thanh toán và số dư dự kiến. Gửi giao dịch, chỉ receipt, reload rồi mở lịch sử.
+Mở `/market`, chọn `MOFI`, chỉ vào:
 
-Giải thích: “Server mới là nơi quyết định số tiền. Frontend chỉ preview. Portfolio được khóa trong transaction database, kiểm tra tiền và vị thế trước khi insert. Nếu mạng chập chờn bấm lại, cùng request key chỉ tạo một dòng.”
+- Giá khớp cuối, tham chiếu, trần, sàn, khối lượng.
+- Bảng Ask 1-3 và Bid 1-3.
+- Ngày, giờ mô phỏng, tick hiện tại/tổng tick và thời gian cập nhật.
+- Nến OHLC ngày, volume và badge `Mô phỏng`.
 
-### 4. Trường hợp lỗi — 1 phút
+Binance chỉ là panel crypto tham khảo tách biệt, định giá USDT, không đi vào danh mục VND.
 
-Thử bán số lượng lớn hơn vị thế hoặc rút nhiều hơn tiền mặt. Kết quả phải là lỗi validation, không thêm transaction dở dang. Có thể nói thêm cùng request key khác payload sẽ trả conflict để chống ghi trùng.
+### 4. Paper trading — 2 phút
 
-### 5. Market, watchlist, alert — 1 phút
+Khi local session còn mở:
 
-Mở `/market`, tìm mã, xem sparkline và thêm watchlist. Tạo cảnh báo GTE/LTE rồi bấm kiểm tra dữ liệu mô phỏng. Mở notifications. Giải thích cảnh báo chỉ tạo khi trạng thái chuyển từ false sang true; trạng thái true lặp lại không spam notification.
+1. Chọn `Mua` hoặc `Bán`, loại `LO` hoặc `MP`, nhập khối lượng.
+2. LO BUY chỉ khớp khi Ask <= giá đặt; LO SELL chỉ khớp khi Bid >= giá đặt.
+3. MP ăn các mức đối ứng trong depth; lệnh lớn có thể `PARTIALLY_FILLED`.
+4. Chỉ vào reservation, execution, trạng thái order và số dư khả dụng.
+5. Hủy lệnh `OPEN/PARTIALLY_FILLED` để chứng minh reservation được giải phóng.
 
-### 6. Simulation, Copilot, admin — 2 phút
+### 5. Nạp/rút và lịch sử — 1 phút
 
-Mở `/simulation`, kéo shock 10–20% và lưu kịch bản. Nói rõ đây là phép tính what-if, không sửa số dư hay transaction. Mở `/copilot`, chọn câu hỏi mẫu và nói đây là rule-based, chưa phải LLM trả phí. Nếu còn thời gian mở `/admin`, dùng tài khoản admin, bấm health check và chỉ ra database/cache/demo fixture.
+Mở `Nạp / rút tiền`. Form chỉ có `Nạp tiền ảo` và `Rút tiền ảo`; không chọn Mua/Bán tại đây. Sau khi một paper order khớp, lịch sử vẫn hiển thị dòng BUY/SELL để đối soát, nhưng không tạo trực tiếp từ form này.
+
+### 6. Các module khác — 1 phút
+
+Chỉ nhanh goals, watchlist, alerts, tasks, learning, Copilot, strategies, simulation, community và admin. Nhấn mạnh Copilot/strategy/simulation là deterministic/mock, simulation không ghi vào portfolio thật.
 
 ### 7. Kết luận — 1 phút
 
-Chốt: “Bản demo đã có luồng dữ liệu khép kín từ route → policy → service → PostgreSQL → props → React chart. Các phần chưa bật là broker/tiền thật, chứng khoán realtime Việt Nam và LLM thật; chúng được tách thành provider hoặc roadmap riêng để không giả lập sai trong bản đánh giá.”
+“MOFI đã có luồng khép kín từ bảng giá mô phỏng đến order, reservation, execution, ledger và dashboard. Bản này chưa dùng broker, tiền thật, dữ liệu exchange realtime hay LLM trả phí.”
 
-## Logic và thuật toán cần giải thích
+## Thuật toán cần giải thích
 
-### Tổng tài sản và P/L
+### Portfolio
 
-- Cash = tổng `cash_delta` của các transaction.
-- Vị thế = tổng BUY trừ tổng SELL theo từng mã.
-- Market value = quantity × giá mô phỏng gần nhất.
-- Tổng tài sản = cash + market value chứng khoán + manual assets.
-- Realized P/L của SELL = tiền thực nhận − giá vốn của lượng bán.
-- Unrealized P/L = market value hiện tại − cost basis còn lại.
-- Total P/L = realized P/L + unrealized P/L + net dividend. Deposit không phải lợi nhuận.
-- Tiền dùng `numeric/decimal` và `BigDecimal` ở server, không dùng JavaScript float để quyết định số dư.
+```text
+cash = sum(cash_delta)
+market_value = quantity * latest_demo_quote
+unrealized_pnl = market_value - remaining_cost_basis
+total_pnl = realized_pnl + unrealized_pnl + net_dividend
+total_assets = cash + market_value + manual_assets
+```
 
-### Giá vốn bình quân
+Deposit không phải lợi nhuận. BUY tăng cost basis bằng gross + fee + tax; SELL giải phóng average cost theo lượng bán.
 
-Với BUY, giá vốn tăng bằng `gross + fee + tax`. Với SELL, giá vốn phần bán là `average_cost × quantity_sold`; phần còn lại giữ giá vốn tương ứng. Khi bán hết, giá vốn vị thế về 0.
+### Đặt lệnh
 
-### Giao dịch an toàn
+1. Authorize portfolio thuộc user.
+2. Lock instrument và portfolio.
+3. Kiểm tra request key/hash, session và quote hiện tại.
+4. Tính available cash/quantity sau reservation đang mở.
+5. Tạo order + reservation trong cùng transaction.
+6. Match ngay với tick hiện tại nếu đủ điều kiện.
 
-1. Authorize portfolio thuộc user hiện tại.
-2. Normalize và validate input.
-3. Khóa portfolio bằng row lock.
-4. Kiểm tra request key đã tồn tại chưa.
-5. Tính cash/quantity từ lịch sử.
-6. Chặn cash âm hoặc vị thế âm.
-7. Insert transaction immutable.
-8. Tính lại summary sau commit.
+### Khớp lệnh
 
-Nếu bất kỳ bước nào lỗi, transaction database rollback toàn bộ.
+- MARKET BUY: Ask 1 → Ask 3.
+- MARKET SELL: Bid 1 → Bid 3.
+- LIMIT BUY: Ask <= limit price.
+- LIMIT SELL: Bid >= limit price.
+- Mỗi fill tạo đúng một execution và một transaction; phần còn lại vẫn được giữ.
+- Khi hoàn tất hoặc hủy, reservation được giải phóng.
 
-### Idempotency
+### Đồng hồ mô phỏng
 
-Client tạo `request_key`. Server hash payload nghiệp vụ. Cùng key và cùng payload trả lại receipt cũ; cùng key nhưng payload khác trả `409 Conflict`. Cơ chế này bảo vệ khi người dùng bấm lại sau timeout.
+Server giữ `current_tick`, `simulated_at`, `last_advanced_at` và `revision`. Polling chỉ đọc board; khi đủ 5 giây server tiến tối đa một tick. Reload không chạy lại tick đã xử lý; tick cũ bị từ chối.
 
-### Alert
+### Idempotency và concurrency
 
-Rule có operator GTE/LTE và `last_condition`. Giá thiếu hoặc không đúng ngày mô phỏng thì bỏ qua. `false → true` tạo notification; `true → true` không tạo thêm; khi về false, rule được re-arm cho lần đạt ngưỡng tiếp theo.
-
-### Simulation
-
-Với shock giảm `r`, giá trị chứng khoán sau kịch bản = giá trị hiện tại × `(1 - r)`. Cash và manual assets giữ nguyên. Kết quả chỉ lưu scenario, không ghi transaction và không thay portfolio thật.
+Cùng request key + cùng payload trả kết quả cũ; cùng key + payload khác trả `409`. Portfolio/order lock ngăn hai request dùng chung cash hoặc quantity. PostgreSQL acceptance test đã chạy đạt ở native và emulated prepares.
 
 ## Câu hỏi sếp có thể hỏi
 
-- **Tại sao chưa gọi API chứng khoán thật?** Vì cần nguồn hợp pháp, rate limit và chất lượng dữ liệu; bản demo dùng fixture ổn định, có nhãn `demo`. Crypto preview đã tách provider riêng để chứng minh khả năng thay nguồn.
-- **Tại sao không tính tiền ở React?** React chỉ preview; server là nguồn sự thật để tránh sửa request hoặc sai số float.
-- **Làm sao chống user xem dữ liệu người khác?** Policy, query theo `user_id`, route model binding và test cross-owner đều chặn.
-- **Làm sao chống bấm nút hai lần?** Request key + hash + unique constraint + row lock.
-- **AI đã train chưa?** Chưa. Copilot hiện deterministic/rule-based, không giả là mô hình AI thật.
-- **Nếu database lỗi thì sao?** Transaction rollback, không lưu nửa chừng; admin health endpoint báo trạng thái database/cache.
-- **Có dùng tiền thật không?** Không. Đây là sổ giao dịch mô phỏng, không có broker, ngân hàng hay thanh toán.
-- **Mở rộng production thế nào?** Thay `MarketDataProvider`, thêm queue/cache/observability, KYC/2FA, broker adapter, audit và kiểm thử SLA trước khi bật giao dịch thật.
+- **Đây có phải giao dịch thật không?** Không; đây là paper trading, không broker, ngân hàng hay tiền thật.
+- **Tại sao không gọi giá cổ phiếu Việt Nam thật?** Cần provider hợp pháp, SLA, rate limit và quyền dữ liệu; demo dùng replay ổn định, có nhãn.
+- **Tại sao BUY/SELL không nằm ở Transactions?** Transactions là cash flow; Market là order flow. Execution mới sinh ledger BUY/SELL, tránh ghi tiền hai lần và giữ đúng logic khớp lệnh.
+- **React có tự tính số dư không?** Không; server là source of truth, dùng decimal/BigDecimal.
+- **Làm sao chống bấm hai lần?** Request key, request hash, unique constraint và row lock.
+- **AI đã thật chưa?** Copilot hiện rule-based, không tự nhận là LLM.
+- **Mở rộng production thế nào?** Thay provider replay bằng market-data provider hợp pháp, thêm broker adapter, KYC/2FA, audit, monitoring, limits và kiểm thử SLA.
 
-## Lệnh kiểm thử trước demo
+## Kiểm thử trước demo
 
 ```powershell
 cd mofi-app
-php -d extension=pdo_sqlite vendor/bin/phpunit --colors=never
-$env:MOFI_PG_TEST='1'; $env:MOFI_PG_EMULATE_PREPARES='0'; php vendor/bin/phpunit tests/Feature/PostgresTransactionConcurrencyTest.php
-$env:MOFI_PG_EMULATE_PREPARES='1'; php vendor/bin/phpunit tests/Feature/PostgresTransactionConcurrencyTest.php
+php -d extension=php_pdo_sqlite.dll -d extension=php_sqlite3.dll vendor/bin/phpunit --colors=never
 npx tsc --noEmit
 npm run build
 ```
 
-Kết quả nghiệm thu hiện tại: full suite `84 passed, 1 skipped` mặc định; PostgreSQL concurrency `1 passed, 16 assertions` ở mỗi chế độ; TypeScript và Vite build đạt.
+Kết quả đã xác nhận: `66 tests / 65 passed / 1 skipped / 935 assertions`; PostgreSQL concurrency `1 passed / 18 assertions` ở mỗi chế độ prepares. Test PostgreSQL chỉ được chạy trên database disposable local `mofi_transaction_test` ở `127.0.0.1:55439`.

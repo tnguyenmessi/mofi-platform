@@ -1,6 +1,6 @@
 # Thiết kế database MOFI Demo
 
-Phiên bản 1.0. Mô hình này thay cho schema ledger dài hạn trong đợt demo hai ngày. Chưa có migration, bảng hoặc seed thực tế. Kết nối PDO PostgreSQL/TLS đã xác minh, schema public trống vào 17/09/2026.
+Phiên bản 1.1. Mô hình này mô tả schema demo đã triển khai. Database demo dùng migration/seed Laravel; dữ liệu chứng khoán, order book và phiên thị trường vẫn là fixture mô phỏng. Kết nối PostgreSQL/Supabase được dùng qua Laravel, browser không truy cập trực tiếp bảng private.
 
 ## 1 Mô hình và quan hệ
 
@@ -8,8 +8,15 @@ Phiên bản 1.0. Mô hình này thay cho schema ledger dài hạn trong đợt 
 erDiagram
     USERS ||--|| PORTFOLIOS : owns
     PORTFOLIOS ||--o{ TRANSACTIONS : records
+    PORTFOLIOS ||--o{ ORDERS : places
+    ORDERS ||--|| ORDER_RESERVATIONS : reserves
+    ORDERS ||--o{ EXECUTIONS : fills
+    EXECUTIONS ||--|| TRANSACTIONS : posts
     INSTRUMENTS ||--o{ TRANSACTIONS : traded
+    INSTRUMENTS ||--o{ ORDERS : traded
     INSTRUMENTS ||--o{ MARKET_PRICES : has
+    INSTRUMENTS ||--o{ DEMO_MARKET_SESSIONS : replays
+    DEMO_MARKET_SESSIONS ||--o{ DEMO_MARKET_TICKS : contains
     USERS ||--o{ MANUAL_ASSETS : owns
     USERS ||--o{ GOALS : tracks
     USERS ||--o{ WATCHLIST_ITEMS : watches
@@ -21,7 +28,7 @@ erDiagram
     USERS ||--o{ LEARNING_PROGRESS : completes
 ```
 
-12 bảng nghiệp vụ kể cả users. Bảng sessions/cache/jobs/password_reset_tokens của framework là hạ tầng, không phải entity MOFI bổ sung. Mọi id BIGINT identity/PK; cùng kiểu users scaffold. Bảng thường có created_at/updated_at TIMESTAMPTZ; transactions chỉ created_at vì immutable. Trường có `?` được NULL default NULL; các trường khác NOT NULL, không default nếu không ghi. Numeric dùng giới hạn domain trước khi vượt precision.
+Các bảng nghiệp vụ gồm users, portfolios, instruments, market_prices, transactions, orders, order_reservations, executions, demo_market_sessions, demo_market_ticks, replay_ticks và các bảng workspace. Bảng sessions/cache/jobs/password_reset_tokens của framework là hạ tầng. Mọi id BIGINT identity/PK; bảng tài chính dùng timestamp và numeric/decimal có giới hạn domain. Transactions và executions là immutable ở tầng route/service.
 
 ## 2 Từ điển dữ liệu
 
@@ -60,7 +67,7 @@ Profile dùng name trên users, chưa cần bảng profiles. Một account khôn
 | request_hash | CHAR(64) | Hash normalized payload, duplicate khác hash trả 409 |
 | created_at | TIMESTAMPTZ default now() | Thời điểm ghi thật UTC; thứ tự replay(trade_date,id) |
 
-CHECK row shape theo kind, cash_delta theo công thức: deposit +gross; withdraw -gross; buy -(gross+fee+tax); sell/dividend gross-fee-tax. BUY/SELL check gross bằng round(quantity*unit_price). Mọi fee/tax VND nguyên, input max qty10^9, price10^12, tổngamount<10^20. Không lưu realized/basis độc lập để lệch replay; domain tính lại trên small dataset. Không UPDATE/DELETE transaction qua route, PostgreSQL financial FK delete RESTRICT. Không force unique timestamp vì hai giao dịch cùng ngày hợp lệ.
+CHECK row shape theo kind, cash_delta theo công thức: deposit +gross; withdraw -gross; buy -(gross+fee+tax); sell/dividend gross-fee-tax. BUY/SELL trong bảng này chỉ là kết quả execution; form Transactions không nhận thao tác BUY/SELL trực tiếp. Mọi fee/tax VND nguyên, input max qty10^9, price10^12, tổngamount<10^20. Không lưu realized/basis độc lập để lệch replay; domain tính lại trên small dataset. Không UPDATE/DELETE transaction qua route, PostgreSQL financial FK delete RESTRICT. Không force unique timestamp vì hai giao dịch cùng ngày hợp lệ.
 
 ### manual_assets và goals
 
@@ -87,7 +94,7 @@ Mỗi bảng user-owned index user_id; notifications thêm(user_id,read_at,creat
 
 Cash=sum cash_delta. Replay BUY/SELL theo trade_date,id: BUY Q+=q,B+=gross+fee+tax; SELL sold_basis=round8(B*q/Q), bán hết lấy hếtB, R+=gross-fee-tax-sold_basis,Q-=q,B-=sold_basis. Income I=sum net dividend. S=sumQ*latest_quote; U=S-B; P/L=R+U+I; portfolio V=Cash+S; total assets W=V+sum manual_assets. Goal không cộng vàoW. Tỷ lệ U/B chỉ hiển thị khiB>0, không gọi là tỷ suất toàn bộ danh mục.
 
-Để ghi giao dịch: owner policy -> transaction DB -> khóa portfolio FOR UPDATE -> kiểm tra request_key/hash -> replay hiện tại -> validate cash/quantity/date -> insert -> commit. Concurrent sell không cùng đọc số dư cũ. Payload key khác không được replay receipt khác. Biểu đồ historical portfolio EOD dùng giao dịch đến từng ngày và giá<=ngày đó; sau event mới tính lại điểm ngày mô phỏng. Dataset demo nhỏ nên chưa cần projections/snapshots/queues, nhưng giới hạn input/list pagination rõ ràng.
+Để ghi nạp/rút: owner policy -> transaction DB -> khóa portfolio FOR UPDATE -> kiểm tra request_key/hash -> validate cash/date -> insert -> commit. Để ghi BUY/SELL: Market order -> reservation -> execution -> transaction trong cùng transaction DB. Concurrent order không cùng đọc cash/quantity khả dụng cũ. Payload key khác không được replay receipt/order khác. Biểu đồ historical portfolio EOD dùng giao dịch đến từng ngày và giá<=ngày đó; sau event mới tính lại điểm ngày mô phỏng. Dataset demo nhỏ nên chưa cần projections/snapshots/queues, nhưng giới hạn input/list pagination rõ ràng.
 
 Thiếu quote: S và W không đầy đủ, trả NULL + known_value và label, không giá 0. Không có intraday nên bỏ nút 1D hoặc disabled có chú thích. Tất cả decimals response dạng chuỗi.
 
@@ -115,6 +122,24 @@ Deposit thêm 10m: cash 24.565.000, wealth 48.315.000, P/L vẫn3.315.000. Mua t
 
 ## 5 Migrations và Supabase
 
-Thứ tự: users/framework -> portfolios -> instruments/market_prices -> transactions -> manual_assets/goals -> watchlist/alerts/notifications/tasks/progress. Không chạy migrations trước khi bắt đầu đợt code theo yêu cầu hiện tại. Kiểm tra DB thông qua Laravel sau setup; dùng database test riêng cho migrate:fresh. Seed thêm account demo idempotent, không reset Supabase dùng chung.
+Thứ tự migration: users/framework -> portfolios/instruments/market_prices -> transactions -> workspace -> orders/reservations/executions -> demo sessions/ticks -> replay metadata -> strategy/simulation/community/Copilot. Kiểm tra DB thông qua Laravel; test destructive `migrate:fresh` chỉ được chạy trên database test riêng. Seed account demo idempotent, không reset Supabase dùng chung.
 
-Backend kết nối direct PostgreSQL TLS; verify routing bằng Laravel và xem grants/Data API trước khi tạo bảng. Vì browser không dùng Supabase API, không cấp anon/authenticated quyền đọc bảng tài chính. Nếu bảng đặt public thì cần revoke grants phù hợp hoặc disable Data API; kiểm chứng bằng request không auth không đọc được dữ liệu. Chưa tự đánh dấu phần này đã làm. Không cần đổi password tài khoản Supabase để hoàn thành tài liệu.
+Backend kết nối PostgreSQL/Supabase qua Laravel và TLS/pooler theo môi trường. Browser không dùng Supabase API cho bảng tài chính; private API yêu cầu session/auth. Smoke public xác nhận API summary/transactions/market-board chưa xác thực trả `401`; endpoint candles và crypto preview là public theo thiết kế. Không cần đưa password Supabase vào tài liệu.
+
+## 6. Paper trading tables và replay
+
+### orders và order_reservations
+
+- `orders` lưu owner, portfolio, instrument, `side` BUY/SELL, `order_type` MARKET/LIMIT, quantity, filled quantity, limit price, trạng thái và simulated placement tick.
+- `order_reservations` giữ cash cho BUY hoặc quantity cho SELL. Một order có tối đa một reservation; cancel/filled cập nhật `released_at` và phần giữ còn lại.
+- Trạng thái dùng trong demo: `OPEN`, `PARTIALLY_FILLED`, `FILLED`, `CANCELLED`.
+
+### executions
+
+Mỗi lần khớp lưu order, portfolio, instrument, transaction, execution key UUID, quantity, unit price, gross, fee/tax, source `demo_market_board`, thời điểm thật và simulated time. Một execution tạo đúng một transaction BUY/SELL.
+
+### demo_market_sessions, demo_market_ticks và replay_ticks
+
+`demo_market_sessions` giữ ngày, status, current tick, interval thật/mô phỏng, simulated timestamp và revision. `demo_market_ticks` giữ quote last/reference/ceiling/floor, bid1-3, ask1-3, volume và simulated timestamp. `replay_ticks` ngăn cùng portfolio chạy lại tick cũ sau reload.
+
+Session mặc định có 54 tick, ngày `2026-09-15`, nhịp 5 phút mô phỏng/tick và 5 giây thật/tick. Đây là quote board demo, không phải thanh khoản hoặc order book của một sàn thật.

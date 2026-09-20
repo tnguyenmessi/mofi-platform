@@ -27,18 +27,29 @@ Dịch các giao dịch theo `trade_date`, sau đó theo `id`:
 - Goal chỉ là tiến độ kế hoạch, không giữ tiền và không cộng vào tài sản.
 - Nếu một vị thế thiếu giá hợp lệ, tổng định giá chính chuyển thành `null`, không âm thầm đổi thành 0.
 
-## 3. Ghi giao dịch
+## 3. Ghi nạp/rút và ghi nhận BUY/SELL
 
-`RecordTransaction` chạy trong transaction database và khóa dòng portfolio bằng `lockForUpdate()`.
+Form `Transactions` gọi `RecordTransaction` nhưng service này chỉ nhận `DEPOSIT` và `WITHDRAW`. BUY/SELL đi qua `PaperTradingService` và chỉ được tạo bởi execution của paper order.
+
+### Nạp/rút tiền
 
 1. FormRequest chỉ nhận field người dùng được phép nhập.
-2. Server tự đặt `trade_date`, `cash_delta`, `gross_amount` của giao dịch mua/bán và `request_hash`.
-3. Kiểm tra portfolio thuộc user, instrument có thể giao dịch và đúng thị trường VN/VND.
-4. Kiểm tra đủ cash hoặc đủ quantity trước khi ghi.
-5. `request_key` duy nhất theo portfolio để retry mạng không tạo giao dịch trùng.
-6. Cùng key cùng payload trả lại receipt cũ; cùng key khác payload trả `409`.
-7. Lỗi validation trả `422`; không ghi một phần dữ liệu.
-8. Transaction đã ghi là immutable trong bản demo.
+2. Server tự đặt `trade_date`, `cash_delta`, `gross_amount` và `request_hash`.
+3. Kiểm tra portfolio thuộc user và cash sau giao dịch không âm.
+4. `request_key` duy nhất theo portfolio để retry mạng không tạo giao dịch trùng.
+5. Cùng key cùng payload trả lại receipt cũ; cùng key khác payload trả `409`.
+6. Lỗi validation trả `422`; không ghi một phần dữ liệu.
+7. Transaction đã ghi là immutable trong bản demo.
+
+### Paper order BUY/SELL
+
+1. Authorize portfolio, khóa instrument rồi khóa portfolio.
+2. Kiểm tra request key/hash, phiên mô phỏng và quote hiện tại.
+3. Tính available cash/quantity sau các reservation đang mở.
+4. Tạo order và reservation; Market order có thể match ngay với Ask/Bid hiện tại.
+5. Mỗi fill tạo một execution và một transaction BUY/SELL immutable.
+6. Partial fill giữ phần còn lại; filled/cancelled giải phóng reservation.
+7. Lỗi ở bất kỳ bước nào rollback cả order, reservation, execution và transaction.
 
 ## 4. API và quyền riêng tư
 
@@ -57,16 +68,16 @@ Dịch các giao dịch theo `trade_date`, sau đó theo `id`:
 - Lesson slug nằm trong allowlist và tiến độ có unique `(user_id, lesson_slug)`.
 - Copilot, strategy và simulation là deterministic/mock; không tự nhận là AI, backtest hay khuyến nghị đầu tư thật.
 
-## 6. Checklist nghiệm thu tiếp theo
+## 6. Checklist nghiệm thu
 
 1. Đăng nhập demo A và B, xác nhận dữ liệu không lẫn.
-2. Deposit -> BUY -> SELL, reload và đối chiếu cash/quantity/P&L.
-3. Retry cùng `request_key`, thử SELL vượt quantity.
+2. Deposit/withdraw tại Transactions; BUY/SELL tại Market; reload và đối chiếu cash/quantity/P&L.
+3. Retry cùng `request_key`, thử lệnh SELL vượt quantity và rút vượt cash.
 4. Tạo/sửa/xóa goal, asset, task, watchlist và alert.
 5. Tải giá thật Binance và kiểm tra trạng thái lỗi khi nguồn không phản hồi.
 6. Kiểm tra màn hình 360px, 768px và desktop.
-7. Chạy Pint, PHPUnit SQLite, PostgreSQL concurrency test và Vite build.
-8. Chỉ sau khi checklist đạt mới tạo bản release/demo presentation.
+7. Chạy PHPUnit SQLite, PostgreSQL concurrency test trên database disposable, TypeScript và Vite build.
+8. Đối chiếu ma trận T01-T14 trong `ACCEPTANCE_REPORT.md` trước khi tạo bản release/demo presentation.
 
 ## Admin · cập nhật triển khai
 
@@ -77,3 +88,11 @@ Dịch các giao dịch theo `trade_date`, sau đó theo `id`:
 - Seeder không nâng quyền tài khoản thường có cùng email và không đổi mật khẩu admin đã tồn tại.
 - Đã áp dụng migration role và tạo admin trên DB demo. Thông tin đăng nhập nằm trong `mofi-app/.local-demo-credentials.md` bị Git ignore.
 - Admin dùng `/login` rồi mở `/admin`; không dùng tài khoản quản trị để trình diễn giao dịch.
+
+## 7. Paper market và đồng hồ mô phỏng
+
+- `QuoteBoardService` tạo session theo instrument/ngày, seed 54 tick cho hai phiên 09:00-11:30 và 13:00-14:55, mỗi tick cách 5 phút mô phỏng.
+- Mỗi request board khóa session và chỉ tiến một tick khi đủ `real_interval_seconds` (mặc định 5 giây); polling không tự chạy lại tick cũ.
+- Tick lưu last/reference/ceiling/floor, bid1-3, ask1-3, quantity và total volume. Đây là thanh khoản mô phỏng, không phải sổ lệnh của sàn.
+- `MarketMatchingService` khớp BUY theo Ask và SELL theo Bid, đi qua tối đa ba depth level; phần chưa khớp giữ ở `PARTIALLY_FILLED`.
+- `ReplayController::candles` trả OHLC ngày deterministic từ `DemoReplayProvider`; endpoint board private yêu cầu auth.

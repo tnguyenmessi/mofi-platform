@@ -1,131 +1,111 @@
-# MOFI - Kịch bản demo chi tiết
+# MOFI — Kịch bản demo chi tiết
 
 Tài liệu này dùng cho buổi demo nội bộ. Toàn bộ tiền, giá cổ phiếu và lệnh mua bán trong MOFI là mô phỏng.
 
 ## 0. Chuẩn bị
 
-Mở hai terminal:
+Local:
 
 ```powershell
 cd "C:\Users\nguye\Downloads\DỰ ÁN 2\mofi-app"
 php artisan serve --host=127.0.0.1 --port=8000
-```
-
-Terminal thứ hai:
-
-```powershell
-cd "C:\Users\nguye\Downloads\DỰ ÁN 2\mofi-app"
 npm run dev
 ```
 
-Mở `http://127.0.0.1:8000/`.
-
-Tài khoản và mật khẩu nằm trong `mofi-app/.local-demo-credentials.md`. File đã bị Git ignore; mở riêng trên máy, không chiếu lên màn hình và không đưa vào GitHub.
+Mở `http://127.0.0.1:8000/`. Tài khoản nằm trong `mofi-app/.local-demo-credentials.md`; không chiếu hoặc đưa file này vào Git.
 
 | Tài khoản | Mục đích |
-|---|---|
-| Demo A | Dashboard có sẵn dữ liệu, mục tiêu, giao dịch và danh mục |
-| Demo B | Tài khoản trống để thử nạp tiền và lệnh mô phỏng |
+| --- | --- |
+| Demo A | Dashboard có fixture, danh mục, mục tiêu và lịch sử |
+| Demo B | Portfolio riêng để thử nạp/rút và paper order |
 | Admin | Trang quản trị và health check |
 
-## 1. Landing - 1 phút
+Nếu dùng Railway, chỉ trình bày read-only khi phiên đã đóng. Không gửi thao tác tài chính lên live nếu chưa xác nhận ngay trước thao tác.
 
-1. Chỉ vào logo MOFI và nói: “Đây là nền tảng quản lý tài chính cá nhân và đầu tư thực hành.”
-2. Cuộn qua hero, nhóm tính năng và market preview.
-3. Bấm `Đăng nhập`.
+## 1. Landing — 1 phút
 
-Nói rõ: bố cục lấy cảm hứng từ ảnh mẫu; giá chứng khoán trong bản demo có nhãn mô phỏng.
+1. Mở `/`.
+2. Giới thiệu MOFI là nền tảng tài chính cá nhân và đầu tư thực hành.
+3. Chỉ vào nhãn tiền ảo/giá mô phỏng và nói rõ ảnh tham chiếu chỉ dùng cho bố cục.
 
-## 2. Đăng nhập và dashboard - 2 phút
+## 2. Đăng nhập và dashboard — 2 phút
 
-1. Nhập email Demo A trong file credential local.
-2. Nhập mật khẩu tương ứng trong file credential local.
-3. Bấm `Đăng nhập`.
-4. Lần lượt chỉ vào `Tổng tài sản`, `Tiền mặt khả dụng`, `Tiền đang giữ`, `Danh mục đầu tư`, `Lãi/lỗ tổng`, `Lệnh chờ`.
-5. Cuộn xuống chỉ vào `Phân bổ tài sản`, `Mục tiêu tài chính`, `Thị trường mô phỏng`, Copilot, biểu đồ danh mục, watchlist, cảnh báo và việc cần làm.
+1. Đăng nhập Demo A.
+2. Chỉ vào `Tổng tài sản`, `Tiền mặt khả dụng`, `Tiền đang giữ`, `Danh mục đầu tư`, `Lãi/lỗ tổng` và `Lệnh chờ`.
+3. Cuộn qua allocation, goals, market, Copilot, portfolio chart, watchlist, alerts và tasks.
+4. Giải thích: summary do Laravel tính từ ledger + giá mô phỏng; React/Inertia không quyết định số dư cuối cùng.
 
-Giải thích: “Laravel tính summary từ ledger giao dịch, giá mô phỏng và vị thế ở server; React/Inertia chỉ hiển thị.”
-
-## 3. Thị trường và biểu đồ - 2 phút
+## 3. Thị trường và bảng giá — 2 phút
 
 1. Sidebar → `Thị trường`.
-2. Ô tìm kiếm → nhập `MOFI`.
-3. Chỉ vào badge `Mô phỏng`.
-4. Bấm lần lượt `7 ngày`, `14 ngày`, `30 ngày`.
-5. Chỉ vào biểu đồ nến, volume và `Sổ lệnh mô phỏng`.
-6. Chỉ vào form `Paper trading · Bảng lệnh mô phỏng`.
-7. Nếu cần, chọn `BTCUSDT` ở phần crypto và bấm `Tải giá thị trường`.
+2. Chọn `MOFI`.
+3. Chỉ vào giá khớp cuối, tham chiếu, trần, sàn, khối lượng khớp/tổng.
+4. Chỉ vào `Ask 1-3`, `Bid 1-3`, trạng thái phiên, giờ mô phỏng và tick.
+5. Nói rõ: 5 giây thật = 5 phút mô phỏng khi session mở; ngày demo là `15/09/2026`.
+6. Chỉ vào nến OHLC ngày, volume và badge `Mô phỏng` nếu đang hiển thị.
+7. Panel Binance là crypto tham khảo bằng USDT, không nhập vào danh mục VND.
 
-Giải thích: cổ phiếu Việt Nam dùng provider replay cố định; crypto Binance là nguồn tham khảo riêng, không trộn vào danh mục VND.
+## 4. Paper trading — 3 phút
 
-## 4. Paper trading - đặt lệnh và replay - 2 phút
+Chỉ làm thao tác ghi khi dùng local hoặc khi đã có xác nhận trực tiếp cho môi trường live.
 
-1. Trong form, chọn mã `MOFI`, chiều `Mua`, loại `Limit`.
-2. Nhập số lượng `10`, giá giới hạn `124000`.
-3. Bấm `Đặt lệnh mô phỏng`.
-4. Chỉ vào thông báo lệnh đang chờ, dashboard `Tiền đang giữ` và `Lệnh chờ`.
-5. Bấm `Tiến phiên 1`; nếu chưa đạt giá, bấm phiên tiếp theo.
-6. Chỉ vào thông báo số lệnh khớp.
-7. Reload trang và chỉ ra nút đang ở phiên kế tiếp, không chạy lại tick cũ.
-8. Nếu cần, bấm `Hủy lệnh` để chứng minh reservation được giải phóng.
+1. Chọn `Mua` hoặc `Bán`.
+2. Chọn `LO · Lệnh giới hạn` hoặc `MP · Lệnh thị trường`.
+3. Với LO BUY, đặt thấp hơn Ask 1 để thấy `OPEN`; với LO SELL, đặt cao hơn Bid 1 để thấy `OPEN`.
+4. Chọn MP hoặc đặt limit đủ điều kiện để lệnh khớp.
+5. Chỉ vào số lượng đặt/khớp, trạng thái, reservation và số lần execution.
+6. Đặt khối lượng lớn hơn một depth level để minh họa `PARTIALLY_FILLED`.
+7. Hủy lệnh đang `OPEN/PARTIALLY_FILLED`; kiểm tra tiền hoặc quantity khả dụng được giải phóng.
+8. Reload trang; order/history vẫn giữ và tick đã xử lý không chạy lại.
 
-Giải thích: server khóa portfolio, giữ tiền hoặc số lượng, kiểm tra điều kiện limit, rồi ghi execution và transaction trong cùng database transaction.
+Giải thích: BUY ăn Ask, SELL ăn Bid; server lock portfolio/order và ghi execution + transaction trong một database transaction.
 
-## 5. Giao dịch và receipt - 2 phút
+## 5. Nạp / rút tiền và đối soát — 2 phút
 
-1. Sidebar → `Giao dịch`.
-2. Dùng Demo B để tránh làm thay đổi dữ liệu trình bày của Demo A.
-3. Chọn `Nạp tiền ảo`, nhập `2000000`.
-4. Quan sát vùng `Xem trước giao dịch`.
-5. Bấm `Ghi giao dịch mô phỏng`.
-6. Chỉ vào receipt: mã, ngày, giá trị, phí/thuế và dòng tiền.
-7. Cuộn xuống lịch sử, dùng bộ lọc loại, mã hoặc ngày.
-8. Bấm `Xuất CSV đã lọc` nếu cần.
+1. Sidebar → `Nạp / rút tiền`.
+2. Dùng Demo B nếu cần thay đổi dữ liệu trình bày.
+3. Chọn `Nạp tiền ảo` hoặc `Rút tiền ảo`, nhập số tiền.
+4. Chỉ vào vùng preview, số dư dự kiến và receipt.
+5. Bấm `Xác nhận nạp / rút mô phỏng`.
+6. Trong lịch sử, lọc `Nạp tiền ảo`/`Rút tiền ảo`; các dòng BUY/SELL đã khớp vẫn hiển thị để đối soát.
 
-Giải thích: preview chỉ là ước tính; server xác thực số tiền. request key + request hash chống ghi trùng khi bấm lại.
+Lưu ý: form này không có lựa chọn Mua/Bán. BUY/SELL chỉ được tạo qua order trong Market.
 
-## 6. Kiểm thử lỗi an toàn - 1 phút
+## 6. Kiểm thử lỗi an toàn — 1 phút
 
-1. Chọn `Rút tiền ảo`, nhập số lớn hơn số dư, bấm ghi.
-2. Chỉ vào lỗi validation và xác nhận lịch sử không có dòng mới.
-3. Nếu có vị thế, chọn `Bán` lớn hơn lượng nắm giữ.
-4. Chỉ vào lỗi tương tự.
+1. Thử rút lớn hơn tiền khả dụng → server trả lỗi, không thêm ledger.
+2. Vào Market, thử bán lớn hơn quantity khả dụng → order bị từ chối.
+3. Dùng lại cùng request key → trả receipt/order cũ; payload khác cùng key → `409`.
 
-Giải thích: validation xảy ra trước insert; transaction rollback nên không có số dư âm hoặc bản ghi dở dang.
+## 7. Các module khác — 2 phút
 
-## 7. Các module khác - 2 phút
+- `Tiền & tài sản`: cash, holdings và manual assets.
+- `Mục tiêu tài chính`: target/saved/deadline; saved không trừ cash.
+- `Danh sách theo dõi`: unique theo user + instrument.
+- `Cảnh báo & thông báo`: false → true mới tạo notification; true lặp không spam.
+- `Việc cần làm`, `Học đầu tư`: trạng thái lưu theo user.
+- `MOFI Copilot`: rule-based, read-only, có disclaimer.
+- `Chiến lược`, `Phòng mô phỏng`: fixture/what-if, không phải backtest và không sửa ledger.
+- `Cộng đồng`: bài mô phỏng, owner mới được xóa bài của mình.
 
-Bấm lần lượt trên sidebar: `Tiền & tài sản`, `Danh mục đầu tư`, `Mục tiêu tài chính`, `Danh sách theo dõi`, `Cảnh báo & thông báo`, `Việc cần làm`, `MOFI Copilot`, `Chiến lược`, `Phòng mô phỏng`, `Học đầu tư`, `Cộng đồng`.
+## 8. Admin — 1 phút
 
-Điểm cần chỉ:
-- Goal có tiến độ, deadline và số tiền cần thêm mỗi tháng.
-- Alert có điều kiện giá và notification.
-- Simulation chỉ lưu kịch bản, không thay đổi ledger.
-- Copilot là rule-based, read-only và có disclaimer.
-- Dữ liệu workspace được giới hạn theo user.
+1. Đăng xuất.
+2. Đăng nhập tài khoản Admin local.
+3. Mở `/admin` và health check.
+4. Chỉ vào trạng thái database/cache/catalog/demo prices.
+5. Giải thích role middleware; user thường không vào được admin.
 
-## 8. Admin - 1 phút
+## 9. Câu kết
 
-1. Bấm `Đăng xuất`.
-2. Vào `/login`, nhập tài khoản Admin từ file local.
-3. Mở `/admin`.
-4. Bấm `Kiểm tra hệ thống`.
-5. Chỉ vào bốn trạng thái: Database, Cache, Danh mục, Giá mô phỏng đều `Sẵn sàng`.
-6. Chỉ vào danh sách tài khoản, danh mục mã và audit log.
-
-Giải thích: route admin có role middleware; tài khoản thường bị từ chối. Credential không nằm trong Git hoặc frontend bundle.
-
-## 9. Câu kết với sếp
-
-> “MOFI là modular monolith Laravel + React/Inertia + PostgreSQL/Supabase. Luồng chính khép kín từ market data mô phỏng → order → reservation → execution → transaction → portfolio summary → dashboard. Bản demo không dùng tiền thật, chưa kết nối broker và Copilot hiện là rule-based. Provider giá thật, LLM thật, CI/CD và monitoring là các bước mở rộng tiếp theo.”
+> “MOFI là modular monolith Laravel + React/Inertia + PostgreSQL/Supabase. Luồng paper trading khép kín từ bảng giá mô phỏng đến order, reservation, execution, ledger và portfolio summary. Bản demo chưa kết nối broker, tiền thật, dữ liệu exchange realtime hoặc LLM trả phí.”
 
 ## 10. Xử lý sự cố
 
-- Không mở trang: kiểm tra hai terminal và dùng đúng `http://127.0.0.1:8000`.
-- Login lỗi: lấy lại thông tin từ file local, không tự đoán mật khẩu.
-- Trang market chậm: chờ request đầu tiên, không bấm liên tục để tránh `429`.
-- Vite asset lỗi: chạy `npm run build` rồi reload.
-- Binance lỗi: bỏ qua phần crypto live, tiếp tục chart MOFI mô phỏng.
-- Limit chưa khớp: nói rõ giá chưa đạt điều kiện, bấm phiên tiếp theo hoặc hủy lệnh.
-- Cần màn hình sạch: đăng xuất và dùng Demo A cho phần read-only.
-
+- Trang local không mở: kiểm tra `php artisan serve` và `npm run dev`.
+- Login lỗi: lấy credential từ file local, không đoán mật khẩu.
+- Market chậm hoặc 429: chờ polling, không bấm liên tục.
+- Phiên `CLOSED`: dùng local database mới seed để diễn tập order; không tự reset database dùng chung.
+- Limit chưa khớp: giải thích điều kiện giá, chuyển tick ở local hoặc hủy lệnh.
+- Binance lỗi: bỏ qua panel crypto, tiếp tục phần MOFI demo.
+- Asset runtime warning: chạy `npm run build`, kiểm tra lại đường dẫn ảnh; không coi đây là lỗi nghiệp vụ giao dịch.

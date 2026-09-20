@@ -741,7 +741,7 @@ def build_document():
         ("PHPUnit với SQLite", "66 tests; 65 passed; 1 skipped; 935 assertions", "Luồng auth, ownership, ledger, orders, quote board và workspace đã có kiểm thử; 1 test được skip theo điều kiện môi trường."),
         ("TypeScript", "Đạt", "Kiểm tra kiểu frontend không lỗi trong lần nghiệm thu."),
         ("Vite production build", "Đạt", "Frontend build được cho deploy."),
-        ("PostgreSQL concurrency", "Có test riêng; không tính vào SQLite run", "Cần chạy khi bật cờ và trỏ vào database kiểm thử PostgreSQL riêng; không chạy destructive test trên DB demo dùng chung."),
+        ("PostgreSQL concurrency", "1 test; 18 assertions; đạt ở native và emulated prepares", "Đã chạy trên cluster PostgreSQL disposable local 127.0.0.1:55439; không chạy destructive test trên DB demo dùng chung."),
         ("Browser QA live", "Đạt trong phạm vi smoke test", "Đã kiểm tra URL public, login session, bảng giá mô phỏng, trạng thái tick/đóng cửa và form Transactions chỉ nạp/rút."),
         ("Deployment", "Đang online", "Railway health check /up và trang chính trả HTTP 200."),
     ], widths=[0.25, 0.33, 0.42], font_size=9.0)
