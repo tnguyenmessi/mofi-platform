@@ -34,6 +34,7 @@ Route::post('/register', [AuthController::class, 'register'])->middleware(['gues
 Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
 Route::get('/api/v1/market/live', LiveMarketController::class)->middleware('throttle:20,1')->name('api.v1.market.live');
 Route::get('/api/v1/instruments/{instrument}/candles', [ReplayController::class, 'candles'])->middleware('throttle:60,1')->name('api.v1.instruments.candles');
+Route::get('/api/v1/instruments/{instrument}/market-board', [ReplayController::class, 'board'])->middleware(['auth', 'throttle:60,1'])->name('api.v1.instruments.market-board');
 Route::get('/admin', AdminController::class)->middleware(['auth', 'admin'])->name('admin.dashboard');
 Route::get('/admin/health', [AdminController::class, 'health'])->middleware(['auth', 'admin', 'throttle:20,1'])->name('admin.health');
 Route::post('/admin/users/{user}/toggle', [AdminController::class, 'toggleUser'])->middleware(['auth', 'admin'])->name('admin.users.toggle');

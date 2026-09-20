@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\User;
 use Database\Seeders\DemoDataSeeder;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -26,115 +27,112 @@ class PaperTradingTest extends TestCase
 
     private function payload(int $instrumentId, array $extra = []): array
     {
-        return array_merge(['request_key' => (string) Str::uuid(), 'instrument_id' => $instrumentId, 'side' => 'BUY', 'order_type' => 'LIMIT', 'quantity' => '10', 'limit_price' => '124000'], $extra);
+        return array_merge([
+            'request_key' => (string) Str::uuid(), 'instrument_id' => $instrumentId, 'side' => 'BUY',
+            'order_type' => 'LIMIT', 'quantity' => '10', 'limit_price' => '124000',
+        ], $extra);
     }
 
-    public function test_limit_order_reserves_cash_and_stays_open_until_quote_reaches_limit(): void
+    public function test_market_board_returns_quote_levels_and_simulated_time(): void
     {
-        [, $portfolio, $instrument] = $this->fixture();
-        $response = $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id));
-        $response->assertCreated()->assertJsonPath('filled', false)->assertJsonPath('data.status', 'OPEN');
-        $this->assertDatabaseHas('order_reservations', ['order_id' => $response->json('data.id'), 'cash_amount' => '1240000', 'released_at' => null]);
-        $this->assertDatabaseCount('executions', 0);
-        $this->assertDatabaseCount('transactions', 5);
+        [, , $instrument] = $this->fixture();
+        $response = $this->getJson(route('api.v1.instruments.market-board', $instrument))->assertOk();
+        $response->assertJsonPath('instrument.symbol', 'MOFI')
+            ->assertJsonCount(3, 'quote.bids')->assertJsonCount(3, 'quote.asks')
+            ->assertJsonPath('session.simulated_interval_minutes', 5)
+            ->assertJsonPath('session.current_tick', 0);
+        $this->assertNotEmpty($response->json('session.simulated_time'));
+        $this->assertNotEmpty($response->json('quote.last_price'));
     }
 
-    public function test_market_order_fills_once_and_retry_replays(): void
+    public function test_board_advances_once_after_real_interval_and_not_on_every_poll(): void
+    {
+        config(['demo.market_real_interval_seconds' => 5]);
+        [, , $instrument] = $this->fixture();
+        $first = $this->getJson(route('api.v1.instruments.market-board', $instrument))->assertOk();
+        $this->assertSame(0, $first->json('session.current_tick'));
+        $second = $this->getJson(route('api.v1.instruments.market-board', $instrument))->assertOk();
+        $this->assertSame(0, $second->json('session.current_tick'));
+        Carbon::setTestNow(now()->addSeconds(6));
+        try {
+            $third = $this->getJson(route('api.v1.instruments.market-board', $instrument))->assertOk();
+            $this->assertSame(1, $third->json('session.current_tick'));
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_market_buy_consumes_ask_and_writes_uuid_safe_execution(): void
     {
         [, $portfolio, $instrument] = $this->fixture();
-        $payload = $this->payload($instrument->id, ['order_type' => 'MARKET', 'limit_price' => null]);
-        $first = $this->postJson(route('api.v1.orders.store', $portfolio), $payload)->assertCreated();
-        $second = $this->postJson(route('api.v1.orders.store', $portfolio), $payload)->assertOk();
-        $first->assertJsonPath('filled', true)->assertJsonPath('data.status', 'FILLED');
-        $second->assertJsonPath('replayed', true)->assertJsonPath('data.id', $first->json('data.id'));
+        $board = $this->getJson(route('api.v1.instruments.market-board', $instrument))->json();
+        $response = $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id, [
+            'order_type' => 'MARKET', 'limit_price' => null, 'quantity' => '10',
+        ]))->assertCreated()->assertJsonPath('filled', true)->assertJsonPath('data.status', 'FILLED');
+        $execution = $response->json('data.executions.0');
+        $this->assertSame($board['quote']['asks'][0]['price'], $execution['unit_price']);
         $this->assertDatabaseCount('executions', 1);
-        $this->assertDatabaseCount('transactions', 6);
+        $this->assertDatabaseHas('executions', ['order_id' => $response->json('data.id'), 'source' => 'demo_market_board']);
+        $this->assertMatchesRegularExpression('/^[0-9a-f-]{36}$/i', (string) \DB::table('executions')->value('execution_key'));
+        $this->assertMatchesRegularExpression('/^[0-9a-f-]{36}$/i', (string) \DB::table('transactions')->where('id', 6)->value('request_key'));
     }
 
-    public function test_pending_buy_prevents_manual_withdrawal_of_reserved_money(): void
+    public function test_limit_buy_below_ask_stays_open_after_next_tick(): void
     {
+        config(['demo.market_real_interval_seconds' => 1]);
         [, $portfolio, $instrument] = $this->fixture();
-        $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id))->assertCreated();
-        $this->postJson(route('api.v1.transactions.store', $portfolio), [
-            'request_key' => (string) Str::uuid(), 'kind' => 'WITHDRAW', 'gross_amount' => '14000000',
-        ])->assertUnprocessable();
-        $this->assertDatabaseCount('transactions', 5);
-    }
-
-    public function test_pending_sell_prevents_manual_sale_of_reserved_shares(): void
-    {
-        [, $portfolio, $instrument] = $this->fixture();
-        $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id, [
-            'side' => 'SELL', 'quantity' => '100', 'limit_price' => '130000',
+        $board = $this->getJson(route('api.v1.instruments.market-board', $instrument))->json();
+        $order = $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id, [
+            'limit_price' => (string) ((int) $board['quote']['floor_price']),
         ]))->assertCreated()->assertJsonPath('data.status', 'OPEN');
-        $this->postJson(route('api.v1.transactions.store', $portfolio), [
-            'request_key' => (string) Str::uuid(), 'kind' => 'SELL', 'instrument_id' => $instrument->id,
-            'quantity' => '60', 'unit_price' => '125000',
-        ])->assertUnprocessable();
-        $this->assertDatabaseCount('transactions', 5);
+        Carbon::setTestNow(now()->addSeconds(2));
+        try {
+            $this->getJson(route('api.v1.instruments.market-board', $instrument))->assertOk();
+        } finally {
+            Carbon::setTestNow();
+        }
+        $this->assertDatabaseHas('orders', ['id' => $order->json('data.id'), 'status' => 'OPEN']);
+        $this->assertDatabaseCount('executions', 0);
     }
 
-    public function test_limit_sell_requires_available_position_and_owner_scope(): void
+    public function test_large_market_buy_can_be_partially_filled_across_depth_levels(): void
     {
         [, $portfolio, $instrument] = $this->fixture();
-        $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id, ['side' => 'SELL', 'quantity' => '999999', 'limit_price' => '125000']))->assertUnprocessable()->assertJsonValidationErrors('quantity');
-        $other = User::factory()->create();
-        $this->actingAs($other)->getJson(route('api.v1.orders.index', $portfolio))->assertNotFound();
-        $this->actingAs($other)->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id))->assertNotFound();
+        $this->postJson(route('api.v1.transactions.store', $portfolio), [
+            'request_key' => (string) Str::uuid(), 'kind' => 'DEPOSIT', 'gross_amount' => '100000000',
+        ])->assertCreated();
+        $board = $this->getJson(route('api.v1.instruments.market-board', $instrument))->json();
+        $depth = array_sum(array_map(fn (array $level): int => (int) $level['quantity'], $board['quote']['asks'])) + 50;
+        $order = $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id, [
+            'order_type' => 'MARKET', 'limit_price' => null, 'quantity' => (string) $depth,
+        ]))->assertCreated();
+        $orderRow = Order::findOrFail($order->json('data.id'));
+        $this->assertSame('PARTIALLY_FILLED', $orderRow->status);
+        $this->assertGreaterThan(0, (float) $orderRow->filled_quantity);
+        $this->assertSame(3, $orderRow->executions()->count());
     }
 
-    public function test_cancel_releases_reservation_and_is_idempotent(): void
+    public function test_cancel_releases_remaining_reservation_and_is_idempotent(): void
     {
         [, $portfolio, $instrument] = $this->fixture();
         $created = $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id))->assertCreated();
         $url = route('api.v1.orders.cancel', $created->json('data.id'));
         $this->postJson($url)->assertOk()->assertJsonPath('data.status', 'CANCELLED');
         $this->postJson($url)->assertOk()->assertJsonPath('data.status', 'CANCELLED');
+        $this->assertNotNull(Order::findOrFail($created->json('data.id'))->reservation->released_at);
         $this->assertDatabaseCount('executions', 0);
-        $this->assertDatabaseHas('order_reservations', ['order_id' => $created->json('data.id')]);
-        $this->assertNotNull(Order::find($created->json('data.id'))->reservation->released_at);
     }
 
-    public function test_advance_replay_endpoint_is_owner_scoped_and_deterministic(): void
+    public function test_order_retry_is_idempotent_and_owner_isolation_is_preserved(): void
     {
         [, $portfolio, $instrument] = $this->fixture();
-        $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])
-            ->assertOk()->assertJsonPath('data.tick', 0)->assertJsonPath('data.filled', []);
-        $this->getJson(route('api.v1.orders.index', $portfolio))
-            ->assertOk()->assertJsonPath('meta.replay_ticks.'.$instrument->id, 0)
-            ->assertHeader('Cache-Control', 'no-store, private');
-        $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])
-            ->assertUnprocessable()->assertJsonValidationErrors('tick');
-        $other = User::factory()->create();
-        $this->actingAs($other)->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])->assertNotFound();
-        $this->getJson(route('api.v1.orders.index', $portfolio))->assertNotFound();
-    }
-
-    public function test_advance_replay_partially_fills_by_tick_capacity(): void
-    {
-        [, $portfolio, $instrument] = $this->fixture();
-        $this->postJson(route('api.v1.transactions.store', $portfolio), [
-            'request_key' => (string) Str::uuid(), 'kind' => 'DEPOSIT', 'gross_amount' => '10000000',
-        ])->assertCreated();
-        $order = $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id, [
-            'quantity' => '150', 'limit_price' => '124000',
-        ]))->assertCreated()->assertJsonPath('data.status', 'OPEN');
-        $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])
-            ->assertOk()->assertJsonPath('data.filled.0.status', 'PARTIALLY_FILLED')->assertJsonPath('data.filled.0.quantity', '100.00000000');
-        $this->assertDatabaseHas('orders', ['id' => $order->json('data.id'), 'status' => 'PARTIALLY_FILLED', 'filled_quantity' => '100.00000000']);
+        $payload = $this->payload($instrument->id, ['order_type' => 'MARKET', 'limit_price' => null]);
+        $first = $this->postJson(route('api.v1.orders.store', $portfolio), $payload)->assertCreated();
+        $this->postJson(route('api.v1.orders.store', $portfolio), $payload)->assertOk()->assertJsonPath('replayed', true);
         $this->assertDatabaseCount('executions', 1);
-        $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 1])
-            ->assertOk()->assertJsonPath('data.filled.0.status', 'FILLED')->assertJsonPath('data.filled.0.quantity', '50.00000000');
-        $this->assertDatabaseCount('executions', 2);
-    }
-
-    public function test_cancel_partial_fill_releases_remaining_reservation(): void
-    {
-        [, $portfolio, $instrument] = $this->fixture();
-        $order = $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id, ['quantity' => '115']))->assertCreated();
-        $this->postJson(route('api.v1.orders.advance', $portfolio), ['instrument_id' => $instrument->id, 'tick' => 0])->assertOk();
-        $this->assertDatabaseHas('orders', ['id' => $order->json('data.id'), 'status' => 'PARTIALLY_FILLED']);
-        $this->postJson(route('api.v1.orders.cancel', $order->json('data.id')))->assertOk()->assertJsonPath('data.status', 'CANCELLED');
-        $this->assertNotNull(Order::find($order->json('data.id'))->reservation->released_at);
+        $other = User::factory()->create();
+        $this->actingAs($other)->getJson(route('api.v1.orders.index', $portfolio))->assertNotFound();
+        $this->actingAs($portfolio->user)->getJson(route('api.v1.orders.index', $portfolio))->assertOk();
+        $this->assertSame($first->json('data.id'), Order::sole()->id);
     }
 }

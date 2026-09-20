@@ -7,7 +7,6 @@ use App\Models\Portfolio;
 use App\Models\Transaction;
 use App\Models\User;
 use Brick\Math\BigDecimal;
-use Brick\Math\RoundingMode;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -96,40 +95,31 @@ class RecordTransaction
     private function normalize(array $input): array
     {
         $kind = $input['kind'];
-        $trade = in_array($kind, ['BUY', 'SELL'], true);
         $cash = in_array($kind, ['DEPOSIT', 'WITHDRAW'], true);
         $fee = BigDecimal::of($input['fee'] ?? '0')->toScale(0);
         $tax = BigDecimal::of($input['tax'] ?? '0')->toScale(0);
         if ($cash && (! $fee->isZero() || ! $tax->isZero())) {
             $this->reject('fee', 'Nạp và rút tiền không áp dụng phí hoặc thuế.');
         }
-        $quantity = $trade ? BigDecimal::of($input['quantity'])->toScale(8) : null;
-        $price = $trade ? BigDecimal::of($input['unit_price'])->toScale(8) : null;
-        if ($trade && (! $quantity->isPositive() || $quantity->isGreaterThan('1000000000'))) {
-            $this->reject('quantity', 'Số lượng phải là số nguyên từ 1 đến 1.000.000.000 cổ phiếu.');
+        if (! $cash) {
+            $this->reject('kind', 'Mua bán cổ phiếu chỉ được ghi nhận từ lệnh trong Thị trường.');
         }
-        if ($trade && (! $price->isPositive() || $price->isGreaterThan('1000000000000'))) {
-            $this->reject('unit_price', 'Giá phải lớn hơn 0 và không vượt quá 1.000.000.000.000.');
-        }
-        $gross = $trade ? $quantity->multipliedBy($price)->toScale(0, RoundingMode::HalfUp) : BigDecimal::of($input['gross_amount'])->toScale(0);
+        $quantity = null;
+        $price = null;
+        $gross = BigDecimal::of($input['gross_amount'])->toScale(0);
         if (! $gross->isPositive() || $gross->isGreaterThanOrEqualTo('100000000000000000000')) {
             $this->reject('gross_amount', 'Số tiền phải lớn hơn 0 và nằm trong giới hạn giao dịch demo.');
-        }
-        if (in_array($kind, ['SELL', 'DIVIDEND'], true) && $gross->isLessThan($fee->plus($tax))) {
-            $this->reject('fee', 'Phí và thuế không được vượt quá số tiền thu về.');
         }
         $delta = match ($kind) {
             'DEPOSIT' => $gross,
             'WITHDRAW' => $gross->negated(),
-            'BUY' => $gross->plus($fee)->plus($tax)->negated(),
-            'SELL', 'DIVIDEND' => $gross->minus($fee)->minus($tax),
         };
         if ($delta->abs()->isGreaterThanOrEqualTo('100000000000000000000')) {
             $this->reject('gross_amount', 'Tổng giao dịch vượt quá giới hạn của bản demo.');
         }
 
         return [
-            'kind' => $kind, 'instrument_id' => $cash ? null : (int) $input['instrument_id'],
+            'kind' => $kind, 'instrument_id' => null,
             'trade_date' => config('demo.simulation_date'), 'quantity' => $quantity === null ? null : (string) $quantity,
             'unit_price' => $price === null ? null : (string) $price, 'gross_amount' => (string) $gross,
             'fee' => (string) $fee, 'tax' => (string) $tax, 'cash_delta' => (string) $delta,

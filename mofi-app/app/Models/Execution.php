@@ -10,11 +10,11 @@ class Execution extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['order_id', 'portfolio_id', 'instrument_id', 'transaction_id', 'quantity', 'unit_price', 'gross_amount', 'fee', 'tax', 'source', 'executed_at'];
+    protected $fillable = ['order_id', 'portfolio_id', 'instrument_id', 'transaction_id', 'execution_key', 'quantity', 'unit_price', 'gross_amount', 'fee', 'tax', 'source', 'executed_at', 'simulated_at'];
 
     protected function casts(): array
     {
-        return ['quantity' => 'decimal:8', 'unit_price' => 'decimal:8', 'gross_amount' => 'decimal:0', 'fee' => 'decimal:0', 'tax' => 'decimal:0', 'executed_at' => 'datetime'];
+        return ['quantity' => 'decimal:8', 'unit_price' => 'decimal:8', 'gross_amount' => 'decimal:0', 'fee' => 'decimal:0', 'tax' => 'decimal:0', 'executed_at' => 'datetime', 'simulated_at' => 'datetime'];
     }
 
     public function order(): BelongsTo

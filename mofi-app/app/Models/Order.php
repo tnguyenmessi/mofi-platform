@@ -12,13 +12,13 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'portfolio_id', 'instrument_id', 'side', 'order_type', 'quantity', 'limit_price', 'filled_quantity', 'status', 'request_key', 'request_hash', 'filled_at', 'cancelled_at'];
+    protected $fillable = ['user_id', 'portfolio_id', 'instrument_id', 'side', 'order_type', 'quantity', 'limit_price', 'filled_quantity', 'status', 'request_key', 'request_hash', 'placed_tick', 'placed_at_simulated', 'reserved_unit_price', 'filled_at', 'cancelled_at'];
 
     protected $hidden = ['request_key', 'request_hash'];
 
     protected function casts(): array
     {
-        return ['quantity' => 'decimal:8', 'limit_price' => 'decimal:8', 'filled_quantity' => 'decimal:8', 'filled_at' => 'datetime', 'cancelled_at' => 'datetime'];
+        return ['quantity' => 'decimal:8', 'limit_price' => 'decimal:8', 'filled_quantity' => 'decimal:8', 'placed_tick' => 'integer', 'placed_at_simulated' => 'datetime', 'reserved_unit_price' => 'decimal:8', 'filled_at' => 'datetime', 'cancelled_at' => 'datetime'];
     }
 
     public function portfolio(): BelongsTo
@@ -38,7 +38,7 @@ class Order extends Model
 
     public function execution(): HasOne
     {
-        return $this->hasOne(Execution::class);
+        return $this->hasOne(Execution::class)->latestOfMany('id');
     }
 
     public function executions(): HasMany
