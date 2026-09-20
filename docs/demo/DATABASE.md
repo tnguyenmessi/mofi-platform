@@ -48,7 +48,7 @@ Profile dùng name trên users, chưa cần bảng profiles. Một account khôn
 | instruments | symbol VARCHAR(32); name VARCHAR(120); market VARCHAR(32); asset_class VARCHAR(24); sector? VARCHAR(80); currency CHAR(3); price_unit VARCHAR(32); tradable BOOLEAN=false | UNIQUE(market,symbol); asset_class stock/index/gold/crypto/other; tradable chỉ VN equity VND trong app validation |
 | market_prices | instrument_id BIGINT FK; price_date DATE; close NUMERIC(24,8); reference_close? NUMERIC(24,8); source VARCHAR(32)='demo'; is_demo BOOLEAN=true | UNIQUE(instrument_id,price_date); close>0; reference NULL hoặc>0; source='demo' và is_demo=true; index(instrument_id,price_date DESC) |
 
-Đơn vị thuộc instrument; record không tự mix VND và USD. Mọi giá dựng bằng seed có thể tái lập, không gọi API thật. Source ghi nguồn mô phỏng, không gắn tên sàn như đã lấy dữ liệu thật. latest không sau simulation_date 2026-09-15; không phải latest theo ngày máy tùy ý.
+Đơn vị thuộc instrument; record không tự mix VND và USD. Mọi giá dựng bằng seed có thể tái lập, không gọi API thật. Source ghi nguồn mô phỏng, không gắn tên sàn như đã lấy dữ liệu thật. Giá được giới hạn theo ngày session Market hiện tại, không lấy theo ngày máy tùy ý.
 
 ### transactions
 
@@ -142,4 +142,4 @@ Mỗi lần khớp lưu order, portfolio, instrument, transaction, execution key
 
 `demo_market_sessions` giữ ngày, status, current tick, interval thật/mô phỏng, simulated timestamp và revision. `demo_market_ticks` giữ quote last/reference/ceiling/floor, bid1-3, ask1-3, volume và simulated timestamp. `replay_ticks` ngăn cùng portfolio chạy lại tick cũ sau reload.
 
-Session mặc định có 54 tick, ngày `2026-09-15`, nhịp 5 phút mô phỏng/tick và 5 giây thật/tick. Đây là quote board demo, không phải thanh khoản hoặc order book của một sàn thật.
+Session đầu tiên bắt đầu từ ngày gốc `2026-09-15`, có 54 tick, nhịp 5 phút mô phỏng/tick và 5 giây thật/tick. Khi kết thúc, session ngày làm việc kế tiếp được tạo; lệnh trong ngày chưa khớp bị hủy và reservation được trả lại. Đây là quote board demo, không phải thanh khoản hoặc order book của một sàn thật.

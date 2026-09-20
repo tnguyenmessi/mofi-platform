@@ -4,15 +4,15 @@
 
 - Laravel 13, React 19, Inertia, TypeScript, Recharts and PostgreSQL/Supabase.
 - Vietnamese stock data is deterministic demo data. The market page prioritizes a simulated quote board, bid/ask depth, session clock and paper orders; a daily OHLC replay endpoint/component is available as supporting history, not as a replacement for the board.
-- Five real seconds advance one simulated tick of five minutes while the session is open. The demo date is fixed at `2026-09-15`.
+- Five real seconds advance one simulated tick of five simulated minutes while the session is open. After 54 ticks, the server closes the session, expires unfilled day orders and opens the next business day at tick `0/54`; recorded executions and portfolio history remain intact.
 - `/transactions` is intentionally limited to simulated `DEPOSIT` and `WITHDRAW`. `BUY` and `SELL` are paper orders created in `/market`; only executions create immutable ledger rows.
 - No real brokerage, bank, payment, KYC, broker account or real-money transaction is connected.
 
 ## Current acceptance status
 
 - Public Railway URL is online and smoke-tested: `/up`, `/`, `/login`, public candles, public Binance market preview and private-route authentication boundaries.
-- The live shared market session is currently closed at simulated `14:55` (`tick 54/54`). Read-only inspection is valid; do not submit live financial actions without explicit confirmation.
-- SQLite suite: `66 tests / 65 passed / 1 skipped / 935 assertions`.
+- The shared Railway market session is stateful and advances on board requests; after deployment, a completed day rolls to the next business day automatically. Do not submit live financial actions without explicit confirmation.
+- SQLite suite: `67 tests / 66 passed / 1 skipped / 945 assertions`.
 - PostgreSQL concurrency acceptance: `1 passed / 18 assertions` with native prepares and `1 passed / 18 assertions` with emulated prepares, using a disposable local PostgreSQL cluster on `127.0.0.1:55439` only.
 - TypeScript check and Vite production build pass. The build keeps three runtime image-path warnings for `/images/journey.jpg`, `/images/mountains.jpg` and `/images/city.jpg`; they do not block the app build.
 - Detailed T01-T14 evidence and remaining production gates are in `docs/demo/ACCEPTANCE_REPORT.md`.

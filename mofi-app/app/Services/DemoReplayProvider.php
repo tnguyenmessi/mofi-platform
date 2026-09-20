@@ -7,11 +7,13 @@ use Brick\Math\BigDecimal;
 
 class DemoReplayProvider
 {
+    public function __construct(private DemoMarketClock $clock) {}
+
     /** @return array<int, array<string, string>> */
     public function candles(Instrument $instrument, int $days = 30): array
     {
         $prices = $instrument->marketPrices()->where('source', 'demo')->where('is_demo', true)
-            ->where('price_date', '<=', config('demo.simulation_date'))->latest('price_date')->limit(max(1, min(90, $days)))->get()->reverse()->values();
+            ->where('price_date', '<=', $this->clock->currentDate())->latest('price_date')->limit(max(1, min(90, $days)))->get()->reverse()->values();
         $previous = null;
 
         return $prices->map(function ($price) use (&$previous): array {

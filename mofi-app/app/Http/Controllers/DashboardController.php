@@ -9,6 +9,7 @@ use App\Models\LearningProgress;
 use App\Models\Notification;
 use App\Models\Task;
 use App\Models\WatchlistItem;
+use App\Services\DemoMarketClock;
 use App\Services\PortfolioSummary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -17,7 +18,7 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, PortfolioSummary $summary): Response
+    public function __invoke(Request $request, PortfolioSummary $summary, DemoMarketClock $clock): Response
     {
         $user = $request->user();
         $portfolio = $user->portfolio()->firstOrCreate(['user_id' => $user->id], ['name' => 'Danh mục VND của tôi', 'currency' => 'VND']);
@@ -45,9 +46,10 @@ class DashboardController extends Controller
         $fullSummaryPages = in_array($page, ['dashboard', 'portfolio', 'assets', 'copilot', 'simulation'], true);
         $summaryData = $fullSummaryPages
             ? Cache::remember(PortfolioSummary::cacheKey($portfolio), now()->addSeconds(15), fn () => $summary->forPortfolio($portfolio))
-            : ['portfolio_id' => $portfolio->id, 'as_of' => config('demo.simulation_date'), 'cash' => $page === 'transactions' ? (string) $portfolio->transactions()->sum('cash_delta') : '0.00000000', 'holdings' => [], 'history' => [], 'status' => 'partial', 'total_assets' => null, 'securities_value' => null, 'total_pnl' => null];
-        $market = $marketPages ? Cache::remember('mofi.demo.market.v2.'.config('demo.simulation_date'), now()->addMinutes(2), function () {
-            return Instrument::with(['marketPrices' => fn ($q) => $q->where('price_date', '<=', config('demo.simulation_date'))->where('is_demo', true)->where('source', 'demo')->orderByDesc('price_date')->limit(30)])->orderBy('id')->get()->toArray();
+            : ['portfolio_id' => $portfolio->id, 'as_of' => $clock->currentDate(), 'cash' => $page === 'transactions' ? (string) $portfolio->transactions()->sum('cash_delta') : '0.00000000', 'holdings' => [], 'history' => [], 'status' => 'partial', 'total_assets' => null, 'securities_value' => null, 'total_pnl' => null];
+        $marketDate = $clock->currentDate();
+        $market = $marketPages ? Cache::remember('mofi.demo.market.v2.'.$marketDate, now()->addMinutes(2), function () use ($marketDate) {
+            return Instrument::with(['marketPrices' => fn ($q) => $q->where('price_date', '<=', $marketDate)->where('is_demo', true)->where('source', 'demo')->orderByDesc('price_date')->limit(30)])->orderBy('id')->get()->toArray();
         }) : [];
 
         $transactionQuery = $portfolio->transactions()->with('instrument')->orderByDesc('trade_date')->orderByDesc('id');

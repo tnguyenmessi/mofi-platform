@@ -4,7 +4,7 @@
 
 - Laravel 13 + React 19 + Inertia + TypeScript + PostgreSQL/Supabase.
 - Bảng giá chứng khoán mô phỏng có giá khớp cuối, tham chiếu, trần/sàn, khối lượng, bid/ask và ngày/giờ mô phỏng.
-- Nhịp replay mặc định: 5 giây thật = 5 phút mô phỏng; ngày mô phỏng cố định `15/09/2026`.
+- Nhịp replay mặc định: 5 giây thật = 5 phút mô phỏng; session đầu tiên dùng ngày gốc `15/09/2026` rồi tự chuyển sang ngày làm việc kế tiếp.
 - `Nạp / rút tiền` chỉ ghi `DEPOSIT/WITHDRAW`.
 - Mua/bán đi qua `Market`: order Market/Limit, reservation, execution, partial fill, cancel và transaction BUY/SELL immutable sau khi khớp.
 - Không có broker, ngân hàng, thanh toán, KYC, tiền thật hay dữ liệu chứng khoán Việt Nam realtime.
@@ -19,7 +19,7 @@
 6. Mở `Nạp / rút tiền`: chỉ chọn nạp hoặc rút, xem preview/receipt; mở lịch sử để đối soát các execution BUY/SELL đã khớp.
 7. Kết thúc bằng ownership, goals, watchlist, alerts, Copilot, simulation và các giới hạn production.
 
-Không gửi thao tác tài chính lên URL live dùng chung nếu chưa có xác nhận ngay trước thao tác. Phiên Railway hiện đã đóng ở tick `54/54`, nên chỉ đọc và trình bày trạng thái.
+Không gửi thao tác tài chính lên URL live dùng chung nếu chưa có xác nhận ngay trước thao tác. Session Railway tiến theo polling và tự mở ngày mới sau khi đủ 54 tick.
 
 ## 3. Ma trận nghiệm thu
 
@@ -37,7 +37,7 @@ Không gửi thao tác tài chính lên URL live dùng chung nếu chưa có xá
 | T10 | Alert false→true, true lặp, re-arm | Đạt |
 | T11 | Copilot/strategy/simulation mock boundary | Đạt |
 | T12 | Missing quote, error state, responsive | Đạt một phần: logic missing/error và snapshot tablet đạt; cần runner cố định để chốt 360/768/1366 |
-| T13 | Test/build/secret scan | Đạt: PHPUnit `66 / 65 passed / 1 skipped / 935 assertions`, TypeScript, Vite |
+| T13 | Test/build/secret scan | Đạt: PHPUnit `67 / 66 passed / 1 skipped / 945 assertions`, TypeScript, Vite |
 | T14 | Permissions, deploy, debug exposure | Đạt trong smoke public Railway; production monitoring và cấu hình vận hành vẫn là gate riêng |
 
 Chi tiết bằng chứng nằm trong [`ACCEPTANCE_REPORT.md`](ACCEPTANCE_REPORT.md).

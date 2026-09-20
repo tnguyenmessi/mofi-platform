@@ -32,7 +32,7 @@ Luồng nghiệp vụ đích:
 1. Chốt phạm vi demo: tiền ảo, giá chứng khoán mô phỏng, không broker thật.
 2. Giữ migration hiện có, backup schema và fixture hiện tại.
 3. Kiểm tra các invariant đang có: cash không âm, vị thế không âm, transaction immutable, request key unique.
-4. Đặt ngày mô phỏng cố định và timezone thống nhất.
+4. Đặt ngày gốc mô phỏng và timezone thống nhất; session tự chuyển sang ngày làm việc kế tiếp sau khi hoàn tất 54 tick.
 5. Tạo interface provider cho quote, candle và market session.
 6. Chụp baseline dashboard, transactions, market và admin để so sánh sau mỗi giai đoạn.
 

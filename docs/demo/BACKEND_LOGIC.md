@@ -9,7 +9,7 @@ Tài liệu này mô tả các quy tắc backend cần giữ khi mở rộng d�
 - Laravel quản lý session, CSRF, rate limit, validation, authorization và truy vấn database.
 - React/Inertia chỉ hiển thị dữ liệu; browser không kết nối trực tiếp Supabase.
 - Tiền, giá, phí, thuế và giá vốn dùng `numeric`/`BigDecimal`; JSON trả số tiền dạng chuỗi.
-- Ngày mô phỏng cố định ở `config/demo.php`; không dùng ngày hiện tại để thay đổi fixture.
+- Ngày gốc của fixture nằm ở `config/demo.php`; session Market tự chuyển sang ngày làm việc kế tiếp sau khi đủ 54 tick, còn lịch sử giao dịch vẫn giữ nguyên ngày đã khớp.
 
 ## 2. Tính danh mục
 
@@ -92,7 +92,7 @@ Form `Transactions` gọi `RecordTransaction` nhưng service này chỉ nhận `
 ## 7. Paper market và đồng hồ mô phỏng
 
 - `QuoteBoardService` tạo session theo instrument/ngày, seed 54 tick cho hai phiên 09:00-11:30 và 13:00-14:55, mỗi tick cách 5 phút mô phỏng.
-- Mỗi request board khóa session và chỉ tiến một tick khi đủ `real_interval_seconds` (mặc định 5 giây); polling không tự chạy lại tick cũ.
+- Mỗi request board khóa session và chỉ tiến một tick khi đủ `real_interval_seconds` (mặc định 5 giây); frontend polling là tín hiệu để server tiến tick, không phải timer nền độc lập. Khi đủ 54 tick, session đóng, lệnh OPEN/PARTIALLY_FILLED hết hạn và session ngày làm việc kế tiếp bắt đầu tại tick 0.
 - Tick lưu last/reference/ceiling/floor, bid1-3, ask1-3, quantity và total volume. Đây là thanh khoản mô phỏng, không phải sổ lệnh của sàn.
 - `MarketMatchingService` khớp BUY theo Ask và SELL theo Bid, đi qua tối đa ba depth level; phần chưa khớp giữ ở `PARTIALLY_FILLED`.
 - `ReplayController::candles` trả OHLC ngày deterministic từ `DemoReplayProvider`; endpoint board private yêu cầu auth.

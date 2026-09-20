@@ -17,7 +17,7 @@ Bộ này mô tả bản demo đã triển khai, không phải bản đặc tả
 - `Nạp / rút tiền` chỉ tạo `DEPOSIT/WITHDRAW`.
 - `Mua/Bán` chỉ tạo paper order tại `Thị trường`; execution khớp mới sinh ledger `BUY/SELL`.
 - Bảng giá có last/reference/ceiling/floor, bid/ask depth, volume, ngày/giờ mô phỏng và tick tự cập nhật.
-- Mặc định 5 giây thật = 5 phút mô phỏng; ngày cố định `2026-09-15`.
+- Mặc định 5 giây thật = 5 phút mô phỏng; session đầu tiên bắt đầu ở `2026-09-15` và tự chuyển ngày làm việc sau 54 tick.
 - Giá cổ phiếu Việt Nam là fixture/replay có nhãn; Binance là panel crypto tham khảo tách biệt.
 - Không có broker, tiền thật, KYC, thanh toán hay dữ liệu exchange realtime.
 

@@ -6,6 +6,7 @@ use App\Models\Instrument;
 use App\Models\MarketPrice;
 use App\Models\Portfolio;
 use App\Models\User;
+use App\Services\DemoMarketClock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,14 +17,14 @@ use Illuminate\View\View;
 
 class AdminController extends Controller
 {
-    public function health(): JsonResponse
+    public function health(DemoMarketClock $clock): JsonResponse
     {
         $checks = ['database' => false, 'cache' => false, 'demo_portfolio' => false, 'market_fixture' => false];
         try {
             DB::select('select 1');
             $checks['database'] = true;
             $checks['demo_portfolio'] = Portfolio::exists();
-            $checks['market_fixture'] = MarketPrice::whereDate('price_date', config('demo.simulation_date'))->where('source', 'demo')->where('is_demo', true)->exists();
+            $checks['market_fixture'] = MarketPrice::where('price_date', '<=', $clock->currentDate())->where('source', 'demo')->where('is_demo', true)->exists();
         } catch (\Throwable) {
             // Return only availability; connection errors can contain credentials.
         }
@@ -94,7 +95,7 @@ class AdminController extends Controller
             }
             $target->update(['tradable' => $request->boolean('tradable')]);
             $this->audit($request, $target->tradable ? 'instrument.enabled' : 'instrument.disabled', 'instrument', $target->id);
-            DB::afterCommit(fn () => Cache::forget('mofi.demo.market.v2.'.config('demo.simulation_date')));
+            DB::afterCommit(fn () => Cache::forget('mofi.demo.market.v2.'.app(DemoMarketClock::class)->currentDate()));
         });
 
         return back()->with('status', $request->boolean('tradable') ? 'Đã bật giao dịch.' : 'Đã tắt giao dịch.');

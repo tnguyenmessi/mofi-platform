@@ -696,7 +696,7 @@ def build_document():
     add_section_heading(doc, "Reservation và execution của paper trading", 2)
     add_body(doc, "Lệnh BUY giữ cash khả dụng theo giá giới hạn hoặc mức trần dành cho market order; lệnh SELL giữ quantity khả dụng. Khi quote mô phỏng đạt điều kiện market hoặc limit, hệ thống đi qua Ask 1-3 hoặc Bid 1-3 theo thứ tự giá, tạo một execution cho mỗi phần khớp, cập nhật filled_quantity và điều chỉnh reservation còn lại. Lệnh limit chưa đạt vẫn OPEN; lệnh thiếu thanh khoản chuyển PARTIALLY_FILLED; phần còn lại có thể hủy.")
     add_section_heading(doc, "Nhịp thời gian mô phỏng", 2)
-    add_body(doc, "Một phiên demo gồm các tick từ 09:00 đến 11:25 và 13:00 đến 14:55 theo ngày mô phỏng, tổng cộng 54 tick với cấu hình hiện tại. Mỗi tick tăng 5 phút mô phỏng sau 5 giây thực. Khi hết tick, server chuyển phiên sang CLOSED và khóa nút đặt lệnh, tương tự trạng thái đóng cửa thị trường; việc mở phiên ngày khác là thao tác vận hành demo, không tự sửa lịch sử đã ghi.")
+    add_body(doc, "Một phiên demo gồm các tick từ 09:00 đến 11:25 và 13:00 đến 14:55 theo ngày mô phỏng, tổng cộng 54 tick với cấu hình hiện tại. Mỗi tick tăng 5 phút mô phỏng sau 5 giây thực; frontend polling mỗi 2 giây nhưng server mới là nguồn quyết định tick. Khi hết tick, server đóng session, hủy lệnh trong ngày chưa khớp, giải phóng reservation và tự mở ngày làm việc kế tiếp ở tick 0; lịch sử execution không bị xóa.")
     add_section_heading(doc, "Simulation không làm bẩn dữ liệu", 2)
     add_body(doc, "Kết quả shock giá được tính theo quantity hiện tại và giá sau shock: simulated_value = quantity x quote x (1 - rate). Cash, manual assets và transaction history giữ nguyên. Đây là phép what-if read-only, không phải một giao dịch mới.")
     add_section_heading(doc, "Quyền riêng tư dữ liệu", 2)
@@ -738,7 +738,7 @@ def build_document():
     add_section_heading(doc, "8 Kiểm thử và tiêu chí nghiệm thu", 1)
     add_section_heading(doc, "Bằng chứng kỹ thuật hiện tại", 2)
     add_table(doc, ["Hạng mục", "Kết quả ghi nhận", "Ý nghĩa"], [
-        ("PHPUnit với SQLite", "66 tests; 65 passed; 1 skipped; 935 assertions", "Luồng auth, ownership, ledger, orders, quote board và workspace đã có kiểm thử; 1 test được skip theo điều kiện môi trường."),
+        ("PHPUnit với SQLite", "67 tests; 66 passed; 1 skipped; 945 assertions", "Luồng auth, ownership, ledger, orders, quote board, rollover ngày và workspace đã có kiểm thử; 1 test được skip theo điều kiện môi trường."),
         ("TypeScript", "Đạt", "Kiểm tra kiểu frontend không lỗi trong lần nghiệm thu."),
         ("Vite production build", "Đạt", "Frontend build được cho deploy."),
         ("PostgreSQL concurrency", "1 test; 18 assertions; đạt ở native và emulated prepares", "Đã chạy trên cluster PostgreSQL disposable local 127.0.0.1:55439; không chạy destructive test trên DB demo dùng chung."),

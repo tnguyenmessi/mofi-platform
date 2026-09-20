@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\DemoMarketSession;
 use App\Models\DemoMarketTick;
 use App\Models\Instrument;
+use App\Models\Order;
+use App\Models\Portfolio;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Carbon\CarbonImmutable;
@@ -12,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 class QuoteBoardService
 {
-    public function __construct(private MarketMatchingService $matching) {}
+    public function __construct(private MarketMatchingService $matching, private DemoMarketClock $clock) {}
 
     /** @return array<string, mixed> */
     public function board(Instrument $instrument): array
@@ -37,7 +39,7 @@ class QuoteBoardService
         if (! $next) {
             $session->update(['status' => 'CLOSED', 'last_advanced_at' => now(), 'revision' => $session->revision + 1]);
 
-            return $session;
+            return $this->ensureSessionLocked($instrument);
         }
         if (! $this->isDue($session)) {
             return $session;
@@ -89,6 +91,8 @@ class QuoteBoardService
             ->exists();
         if (! $hasNext && $session->status === 'OPEN') {
             $session->update(['status' => 'CLOSED', 'last_advanced_at' => now(), 'revision' => $session->revision + 1]);
+
+            return $this->ensureSessionLocked($instrument);
         }
 
         return $session;
@@ -107,22 +111,37 @@ class QuoteBoardService
     {
         // Serialize first-use session creation so two browser polls cannot race the unique key.
         $instrument = Instrument::query()->lockForUpdate()->findOrFail($instrument->id);
-        $date = config('demo.simulation_date');
-        DemoMarketSession::query()->firstOrCreate(
-            ['instrument_id' => $instrument->id, 'session_date' => $date],
-            [
+        $session = DemoMarketSession::query()
+            ->where('instrument_id', $instrument->id)
+            ->orderByDesc('session_date')
+            ->lockForUpdate()
+            ->first();
+
+        $date = $this->clock->currentDate();
+        if ($session?->status === 'CLOSED') {
+            $this->expireOpenOrders($instrument);
+            $nextDate = $this->nextTradingDate(CarbonImmutable::parse($session->session_date->toDateString(), config('app.timezone', 'Asia/Ho_Chi_Minh')));
+            $date = max($date, $nextDate->toDateString());
+            $session = null;
+        } elseif ($session && $session->session_date->toDateString() < $date) {
+            $session->update(['status' => 'CLOSED', 'last_advanced_at' => now(), 'revision' => $session->revision + 1]);
+            $this->expireOpenOrders($instrument);
+            $session = null;
+        } elseif ($session) {
+            $date = $session->session_date->toDateString();
+        }
+
+        if (! $session) {
+            $session = DemoMarketSession::create([
+                'instrument_id' => $instrument->id,
+                'session_date' => $date,
                 'status' => 'OPEN',
                 'current_tick' => 0,
                 'real_interval_seconds' => config('demo.market_real_interval_seconds', 5),
                 'simulated_interval_minutes' => config('demo.market_simulated_interval_minutes', 5),
                 'last_advanced_at' => now(),
-            ],
-        );
-        $session = DemoMarketSession::query()
-            ->where('instrument_id', $instrument->id)
-            ->whereDate('session_date', $date)
-            ->lockForUpdate()
-            ->firstOrFail();
+            ]);
+        }
 
         if ($session->ticks()->count() === 0) {
             $this->seedTicks($session, $instrument);
@@ -132,6 +151,39 @@ class QuoteBoardService
         }
 
         return $session;
+    }
+
+    private function nextTradingDate(CarbonImmutable $date): CarbonImmutable
+    {
+        do {
+            $date = $date->addDay();
+        } while ($date->isWeekend());
+
+        return $date;
+    }
+
+    private function expireOpenOrders(Instrument $instrument): void
+    {
+        $orders = Order::query()
+            ->where('instrument_id', $instrument->id)
+            ->whereIn('status', ['OPEN', 'PARTIALLY_FILLED'])
+            ->with('reservation')
+            ->lockForUpdate()
+            ->get();
+        $portfolioIds = [];
+
+        foreach ($orders as $order) {
+            $order->update(['status' => 'CANCELLED', 'cancelled_at' => now()]);
+            $order->reservation?->update(['released_at' => now(), 'cash_amount' => '0', 'quantity' => '0']);
+            $portfolioIds[$order->portfolio_id] = true;
+        }
+
+        foreach (array_keys($portfolioIds) as $portfolioId) {
+            $portfolio = Portfolio::find($portfolioId);
+            if ($portfolio) {
+                DB::afterCommit(fn () => PortfolioSummary::forget($portfolio));
+            }
+        }
     }
 
     private function seedTicks(DemoMarketSession $session, Instrument $instrument): void

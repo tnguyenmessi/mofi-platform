@@ -41,7 +41,7 @@ Nếu dùng Railway, chỉ trình bày read-only khi phiên đã đóng. Không 
 2. Chọn `MOFI`.
 3. Chỉ vào giá khớp cuối, tham chiếu, trần, sàn, khối lượng khớp/tổng.
 4. Chỉ vào `Ask 1-3`, `Bid 1-3`, trạng thái phiên, giờ mô phỏng và tick.
-5. Nói rõ: 5 giây thật = 5 phút mô phỏng khi session mở; ngày demo là `15/09/2026`.
+5. Nói rõ: trình duyệt polling mỗi 2 giây, nhưng server chỉ tăng một tick sau đủ 5 giây thật; mỗi tick tương đương 5 phút mô phỏng. Hết 54 tick, hệ thống tự chuyển sang ngày làm việc kế tiếp.
 6. Chỉ vào nến OHLC ngày, volume và badge `Mô phỏng` nếu đang hiển thị.
 7. Panel Binance là crypto tham khảo bằng USDT, không nhập vào danh mục VND.
 
@@ -105,7 +105,7 @@ Lưu ý: form này không có lựa chọn Mua/Bán. BUY/SELL chỉ được t�
 - Trang local không mở: kiểm tra `php artisan serve` và `npm run dev`.
 - Login lỗi: lấy credential từ file local, không đoán mật khẩu.
 - Market chậm hoặc 429: chờ polling, không bấm liên tục.
-- Phiên `CLOSED`: dùng local database mới seed để diễn tập order; không tự reset database dùng chung.
+- Hết ngày: chờ hệ thống tự mở ngày làm việc kế tiếp ở tick `0/54`; lệnh chưa khớp ngày trước bị hủy và reservation được trả lại.
 - Limit chưa khớp: giải thích điều kiện giá, chuyển tick ở local hoặc hủy lệnh.
 - Binance lỗi: bỏ qua panel crypto, tiếp tục phần MOFI demo.
 - Asset runtime warning: chạy `npm run build`, kiểm tra lại đường dẫn ảnh; không coi đây là lỗi nghiệp vụ giao dịch.

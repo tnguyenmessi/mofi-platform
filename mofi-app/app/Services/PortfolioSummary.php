@@ -17,7 +17,7 @@ class PortfolioSummary
 {
     public static function cacheKey(Portfolio $portfolio): string
     {
-        return 'mofi.portfolio.summary.'.$portfolio->id.'.'.config('demo.simulation_date');
+        return 'mofi.portfolio.summary.'.$portfolio->id.'.'.app(DemoMarketClock::class)->currentDate();
     }
 
     public static function forget(Portfolio $portfolio): void
@@ -40,7 +40,7 @@ class PortfolioSummary
     /** @return array<string, mixed> */
     private function build(Portfolio $portfolio): array
     {
-        $asOf = CarbonImmutable::parse(config('demo.simulation_date'))->startOfDay();
+        $asOf = CarbonImmutable::parse(app(DemoMarketClock::class)->currentDate())->startOfDay();
         $rows = $portfolio->transactions()->where('user_id', $portfolio->user_id)
             ->where('trade_date', '<=', $asOf->toDateString())->orderBy('trade_date')->orderBy('id')->limit(10001)->get();
         if ($rows->count() > 10000) {

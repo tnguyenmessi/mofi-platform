@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\DemoMarketSession;
 use App\Models\Instrument;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\DemoMarketClock;
 use Database\Seeders\DemoDataSeeder;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -60,6 +62,30 @@ class PaperTradingTest extends TestCase
         } finally {
             Carbon::setTestNow();
         }
+    }
+
+    public function test_board_rolls_to_next_business_day_and_releases_open_orders(): void
+    {
+        [, $portfolio, $instrument] = $this->fixture();
+        $board = $this->getJson(route('api.v1.instruments.market-board', $instrument))->json();
+        $order = $this->postJson(route('api.v1.orders.store', $portfolio), $this->payload($instrument->id, [
+            'limit_price' => (string) $board['quote']['floor_price'],
+        ]))->assertCreated()->assertJsonPath('data.status', 'OPEN');
+        $session = DemoMarketSession::where('instrument_id', $instrument->id)->latest('session_date')->firstOrFail();
+        $session->update([
+            'current_tick' => $session->ticks()->max('tick'),
+            'last_advanced_at' => now()->subSeconds(6),
+        ]);
+
+        $next = $this->getJson(route('api.v1.instruments.market-board', $instrument))->assertOk();
+
+        $next->assertJsonPath('session.date', '2026-09-16')
+            ->assertJsonPath('session.current_tick', 0)
+            ->assertJsonPath('session.status', 'OPEN');
+        $this->assertSame('CLOSED', $session->fresh()->status);
+        $this->assertSame('CANCELLED', Order::findOrFail($order->json('data.id'))->status);
+        $this->assertNotNull(Order::findOrFail($order->json('data.id'))->reservation->released_at);
+        $this->assertSame('2026-09-16', app(DemoMarketClock::class)->currentDate());
     }
 
     public function test_market_buy_consumes_ask_and_writes_uuid_safe_execution(): void

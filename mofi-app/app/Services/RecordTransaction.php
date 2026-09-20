@@ -14,7 +14,7 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class RecordTransaction
 {
-    public function __construct(private PortfolioSummary $summary) {}
+    public function __construct(private PortfolioSummary $summary, private DemoMarketClock $clock) {}
 
     /**
      * @param  array<string, mixed>  $input  Validated StoreTransactionRequest data.
@@ -120,7 +120,7 @@ class RecordTransaction
 
         return [
             'kind' => $kind, 'instrument_id' => null,
-            'trade_date' => config('demo.simulation_date'), 'quantity' => $quantity === null ? null : (string) $quantity,
+            'trade_date' => $this->clock->currentDate(), 'quantity' => $quantity === null ? null : (string) $quantity,
             'unit_price' => $price === null ? null : (string) $price, 'gross_amount' => (string) $gross,
             'fee' => (string) $fee, 'tax' => (string) $tax, 'cash_delta' => (string) $delta,
         ];

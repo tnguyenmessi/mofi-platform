@@ -50,7 +50,7 @@ Actor: thành viên. Mở Market -> chọn mã cổ phiếu VN/VND -> xem quote 
 
 ### UC-D04 Xem tổng quan
 
-Actor: thành viên. Dashboard tính từ portfolio + transactions + giá mẫu + manual assets; chart giả lập lịch sử trước ngày demo theo fixture, sau giao dịch chart điểm ngày mô phỏng cập nhật. Donut dùng cùng tổng; missing quote có nhãn chưa đủ định giá, không thay bằng 0. Scope lãi/lỗ chỉ chứng khoán, không đổi giá manual asset thành lợi nhuận. Ngày thị trường hiển thị “Mô phỏng ngày 15/09/2026”, không viết “realtime” hoặc so với ngày thật khi clock khác.
+Actor: thành viên. Dashboard tính từ portfolio + transactions + giá mẫu + manual assets; chart giả lập lịch sử trước ngày demo theo fixture, sau giao dịch chart điểm ngày mô phỏng cập nhật. Donut dùng cùng tổng; missing quote có nhãn chưa đủ định giá, không thay bằng 0. Scope lãi/lỗ chỉ chứng khoán, không đổi giá manual asset thành lợi nhuận. Ngày thị trường lấy từ session demo hiện tại, không viết “realtime” hoặc so với ngày thật khi clock khác.
 
 ### UC-D05 Mục tiêu và việc hôm nay
 
@@ -74,11 +74,11 @@ Actor: thành viên. Bấm “Tóm tắt danh mục”, “Tỷ trọng”, “T
 | R04 | Giá vốn bình quân: BUY thêm gross+fee+tax vào B; SELL giải phóng round8(B*q/Q), bán hết lấy hếtB; realized=net-basis_sold |
 | R05 | Lãi tổng=realized+unrealized+net dividend; deposit không là lãi; manual assets/goals không vào P/L này |
 | R06 | Đơn vị price riêng VND/share, USD/oz, POINT…; quốc tế có thể xem nhưng giao dịch demo chỉ VN equity VND |
-| R07 | Mốc thị trường cố định, UI không cho backdate/sửa trade; seeder tạo lịch sử tăng dần và ghi tổng tiền đầu kỳ bằng deposit |
+| R07 | Session Market do server điều khiển, UI không cho backdate/sửa trade; seeder tạo lịch sử tăng dần và ghi tổng tiền đầu kỳ bằng deposit |
 | R08 | Transaction immutable; order và cash flow có request key/hash; atomic với row lock portfolio/order; không cần revision jobs/reversal engine trong demo |
 | R09 | Mọi trang có empty/loading/error và thông báo mô phỏng; số người dùng/rating/testimonials không thể hiện là thành tích đã xác minh |
 | R10 | Mật khẩu tài khoản hash; DB password ở local env; không secret ở client, screenshot tài liệu, fixture hoặc Git |
-| R11 | Ngày mô phỏng cố định `2026-09-15`; mặc định 5 giây thật = 5 phút mô phỏng; server là nguồn sự thật cho tick/revision |
+| R11 | Ngày gốc `2026-09-15`; mặc định 5 giây thật = 5 phút mô phỏng; đủ 54 tick tự mở ngày làm việc kế tiếp; server là nguồn sự thật cho tick/revision |
 | R12 | Transactions chỉ là cash flow; Market là order flow; chỉ execution khớp mới tạo ledger BUY/SELL |
 
 ## 6 Thiết kế giao diện để triển khai

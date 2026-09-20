@@ -15,8 +15,8 @@ npm run dev
 ```
 
 2. Tài khoản demo nằm trong `mofi-app/.local-demo-credentials.md` — file local bị Git ignore, không chiếu hoặc commit.
-3. Ngày mô phỏng cố định là `2026-09-15`. Nhịp mặc định là 5 giây thật cho mỗi tick 5 phút mô phỏng.
-4. Live Railway hiện ở `CLOSED`, `14:55`, `tick 54/54`; không gửi deposit/withdraw/order/cancel lên live nếu chưa có xác nhận ngay trước thao tác.
+3. Session đầu tiên dùng ngày gốc `2026-09-15`. Nhịp mặc định là 5 giây thật cho mỗi tick 5 phút mô phỏng; đủ 54 tick thì tự sang ngày làm việc tiếp theo.
+4. Railway là môi trường dùng chung, nên chỉ gửi deposit/withdraw/order/cancel sau khi có xác nhận ngay trước thao tác.
 
 ## Kịch bản 10 phút
 
@@ -95,7 +95,7 @@ Deposit không phải lợi nhuận. BUY tăng cost basis bằng gross + fee + t
 
 ### Đồng hồ mô phỏng
 
-Server giữ `current_tick`, `simulated_at`, `last_advanced_at` và `revision`. Polling chỉ đọc board; khi đủ 5 giây server tiến tối đa một tick. Reload không chạy lại tick đã xử lý; tick cũ bị từ chối.
+Server giữ `current_tick`, `simulated_at`, `last_advanced_at` và `revision`. Frontend polling gọi board mỗi 2 giây; khi đủ 5 giây server tiến tối đa một tick. Reload không chạy lại tick đã xử lý; khi đủ 54 tick server đóng ngày, hủy lệnh còn treo và mở ngày làm việc kế tiếp ở tick 0.
 
 ### Idempotency và concurrency
 
@@ -120,4 +120,4 @@ npx tsc --noEmit
 npm run build
 ```
 
-Kết quả đã xác nhận: `66 tests / 65 passed / 1 skipped / 935 assertions`; PostgreSQL concurrency `1 passed / 18 assertions` ở mỗi chế độ prepares. Test PostgreSQL chỉ được chạy trên database disposable local `mofi_transaction_test` ở `127.0.0.1:55439`.
+Kết quả đã xác nhận: `67 tests / 66 passed / 1 skipped / 945 assertions`; PostgreSQL concurrency `1 passed / 18 assertions` ở mỗi chế độ prepares. Test PostgreSQL chỉ được chạy trên database disposable local `mofi_transaction_test` ở `127.0.0.1:55439`.

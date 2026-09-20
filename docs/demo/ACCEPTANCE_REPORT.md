@@ -23,7 +23,7 @@ Trang Transactions không còn tạo BUY/SELL. Lịch sử vẫn hiển thị BU
 | T02 | Register/login/logout, password hash, session và rate limit | Đạt | `WorkspaceTest`, auth controller, smoke `/login` |
 | T03 | Owner isolation và cross-owner access | Đạt | `WorkspaceTest`, `PortfolioSummaryTest`, `PaperTradingTest` |
 | T04 | Portfolio formula, cost basis và P/L | Đạt | `DemoDataSeederTest`, `PortfolioSummaryTest`; fixture total assets `38.315.000 VND` |
-| T05 | Deposit/withdraw và paper BUY/SELL | Đạt | `TransactionApiTest`, `PaperTradingTest`; cash form chỉ DEPOSIT/WITHDRAW |
+| T05 | Deposit/withdraw và paper BUY/SELL | Đạt | `TransactionApiTest`, `PaperTradingTest`; cash form chỉ DEPOSIT/WITHDRAW; hết ngày tự mở session mới |
 | T06 | Negative cash, excess sell, invalid fee và atomic rollback | Đạt | `TransactionApiTest`, `PaperTradingTest` |
 | T07 | Idempotency và concurrency | Đạt | PostgreSQL disposable local: `1 test / 18 assertions` ở native prepares và emulated prepares; test paper orders cạnh tranh và duplicate deposit |
 | T08 | Goals và progress persistence | Đạt | `WorkspaceTest`, page reload/browser route coverage |
@@ -31,7 +31,7 @@ Trang Transactions không còn tạo BUY/SELL. Lịch sử vẫn hiển thị BU
 | T10 | Alert transition, re-arm và missing price | Đạt | `WorkspaceTest::test_alerts_fire_on_transition_rearm_and_ignore_missing_prices` |
 | T11 | Copilot, strategy và simulation boundaries | Đạt | `WorkspaceTest`; deterministic/mock labels; scenario không ghi ledger |
 | T12 | Missing data, error states và responsive layout | Đạt có giới hạn | Missing-price tests đạt; live tablet snapshot `770px` không tràn ngang; desktop/mobile breakpoint cần rerun khi có runner viewport cố định |
-| T13 | Backend suite, TypeScript, build và secret scan | Đạt | PHPUnit `66 / 65 passed / 1 skipped / 935 assertions`; `tsc --noEmit`; Vite build; `git ls-files` không trả secret files |
+| T13 | Backend suite, TypeScript, build và secret scan | Đạt | PHPUnit `67 / 66 passed / 1 skipped / 945 assertions`; `tsc --noEmit`; Vite build; `git ls-files` không trả secret files |
 | T14 | Supabase permissions, public deploy và debug exposure | Đạt trong phạm vi smoke | Public Railway URL online; private APIs trả `401`; `/does-not-exist` trả `404` không lộ stack trace; public candle/Binance endpoints trả dữ liệu; cấu hình APP_DEBUG chỉ được xác nhận black-box |
 
 ## 3. Smoke live đã thực hiện
@@ -52,14 +52,15 @@ URL: `https://mofi-platform-demo-production.up.railway.app/`
 | `/api/v1/portfolios/1/summary` khi chưa xác thực | HTTP 401 |
 | `/api/v1/portfolios/1/transactions` khi chưa xác thực | HTTP 401 |
 
-Browser live `/market` đã hiển thị được MOFI, bảng bid/ask, giá khớp cuối, tham chiếu, trần/sàn, khối lượng, ngày mô phỏng `15/09/2026`, giờ mô phỏng `14:55`, tick `54/54` và trạng thái `Đã đóng cửa`. Snapshot tablet hiện tại `770px` có `document.scrollWidth = 754px`, không tràn ngang; console không có error/warning.
+Browser live `/market` đã hiển thị được MOFI, bảng bid/ask, giá khớp cuối, tham chiếu, trần/sàn, khối lượng, ngày mô phỏng, giờ mô phỏng và tick. Snapshot tablet hiện tại `770px` có `document.scrollWidth = 754px`, không tràn ngang; console không có error/warning.
 
 ## 4. Trạng thái phiên demo live
 
-- Ngày mô phỏng: `2026-09-15`.
+- Ngày gốc mô phỏng: `2026-09-15`; ngày hiện tại lấy từ session Market mới nhất.
 - Nhịp: 5 giây thật tương ứng 5 phút mô phỏng.
-- Phiên dùng chung hiện đã đi tới `14:55`, tick `54/54`, trạng thái `CLOSED`.
-- Vì phiên live đã đóng, không dùng browser để gửi order/deposit/withdraw. Muốn diễn tập đặt lệnh, dùng database local mới seed hoặc mở lại phiên bằng quy trình vận hành được phê duyệt.
+- Frontend polling bảng giá mỗi 2 giây; server chỉ tăng tối đa một tick khi đủ 5 giây thật.
+- Khi đủ 54 tick, server hủy lệnh OPEN/PARTIALLY_FILLED, trả reservation và tự tạo ngày làm việc kế tiếp ở tick `0/54`; execution và lịch sử danh mục không bị xóa.
+- Vì Railway là phiên dùng chung, thao tác order/deposit/withdraw vẫn cần xác nhận ngay trước khi demo.
 
 ## 5. Giới hạn còn lại trước production
 

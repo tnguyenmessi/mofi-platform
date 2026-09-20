@@ -14,6 +14,7 @@ use App\Models\SimulationScenario;
 use App\Models\Task;
 use App\Models\WatchlistItem;
 use App\Services\AlertEvaluationService;
+use App\Services\DemoMarketClock;
 use App\Services\PortfolioSummary;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -70,7 +71,7 @@ class WorkspaceController extends Controller
             $data['category'] = 'other';
         }
         if ($section === 'assets') {
-            $data += ['category' => 'other', 'valued_on' => config('demo.simulation_date')];
+            $data += ['category' => 'other', 'valued_on' => app(DemoMarketClock::class)->currentDate()];
         }
         if ($section === 'tasks' && $row) {
             $data = ['completed_at' => $request->boolean('completed') ? now() : null];

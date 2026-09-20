@@ -3,7 +3,7 @@
 ## Kết luận định hướng
 
 - Tập trung desktop web trước. Mobile chỉ giữ responsive cơ bản để không vỡ layout.
-- Tiếp tục dùng giá chứng khoán Việt Nam mô phỏng trong giai đoạn này. Gắn `source=demo`, `is_demo=true`, ngày dữ liệu cố định và không gọi API không ổn định.
+- Tiếp tục dùng giá chứng khoán Việt Nam mô phỏng trong giai đoạn này. Gắn `source=demo`, `is_demo=true`, giữ fixture gốc có thể tái lập và không gọi API không ổn định; session quote tự chuyển ngày để phục vụ demo liên tục.
 - Giữ tiền ảo, giao dịch và danh mục như hiện tại; không kết nối ngân hàng, môi giới hoặc thanh toán thật.
 - Chưa cần trang admin để hoàn thành bản demo. Nên thêm nền tảng role `user/admin` để sẵn sàng mở rộng.
 
