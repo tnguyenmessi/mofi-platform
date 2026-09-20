@@ -22,12 +22,15 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: mbstring, pdo_sqlite
+          extensions: mbstring, sqlite3, pdo_sqlite
           coverage: none
           tools: composer:v2
 
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Verify SQLite driver
+        run: php -r "if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) { fwrite(STDERR, 'PDO SQLite is not enabled'.PHP_EOL); exit(1); }"
 
       - name: Check PHP formatting
         run: |
