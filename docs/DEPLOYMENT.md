@@ -34,10 +34,10 @@ APP_URL=<Railway public domain>
 LOG_CHANNEL=stderr
 LOG_LEVEL=error
 DB_CONNECTION=pgsql
-DB_HOST=db.egqpjrwmnckgzlajemnl.supabase.co
+DB_HOST=aws-0-ap-southeast-2.pooler.supabase.com
 DB_PORT=5432
 DB_DATABASE=postgres
-DB_USERNAME=postgres
+DB_USERNAME=postgres.egqpjrwmnckgzlajemnl
 DB_PASSWORD=<Supabase database password>
 DB_SSLMODE=require
 DB_EMULATE_PREPARES=true
@@ -52,6 +52,8 @@ QUEUE_CONNECTION=database
 ```
 
 After the first deploy, verify `/up`, `/`, `/login`, demo login, `/market`, `/transactions`, and `/admin`. Treat the hosted instance as a demo environment: it uses simulated financial data and must not receive real credentials, broker keys, payment details, or production personal data.
+
+For Railway, use the Supabase Session Pooler host and project-qualified username above. The direct database host resolves to IPv6 on this project and is not reachable from the Railway runtime; local development can continue using the direct TLS connection documented in the local setup notes.
 
 ## Current Supabase project
 
