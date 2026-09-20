@@ -32,6 +32,11 @@ RED = "B33A4A"
 WHITE = "FFFFFF"
 
 
+def image_color(value: str) -> str:
+    """PIL expects a leading hash for hexadecimal colors."""
+    return value if value.startswith("#") else f"#{value}"
+
+
 def font_path(name: str) -> str:
     candidates = [
         Path("C:/Windows/Fonts") / name,
@@ -191,6 +196,19 @@ def add_number(doc, text):
     return paragraph
 
 
+def add_step_list(doc, items):
+    for index, text in enumerate(items, start=1):
+        paragraph = doc.add_paragraph()
+        paragraph.paragraph_format.left_indent = Inches(0.25)
+        paragraph.paragraph_format.first_line_indent = Inches(-0.25)
+        paragraph.paragraph_format.space_after = Pt(4)
+        number = paragraph.add_run(f"{index}.  ")
+        set_run_font(number, size=10.5, bold=True, color=TEXT)
+        body = paragraph.add_run(text)
+        set_run_font(body, size=10.5, color=TEXT)
+    return None
+
+
 def add_table(doc, headers, rows, widths=None, font_size=9.2, header_fill=NAVY):
     table = doc.add_table(rows=1, cols=len(headers))
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -305,6 +323,7 @@ def new_doc():
 
 
 def draw_arrow(draw, start, end, fill=NAVY, width=5):
+    fill = image_color(fill)
     draw.line([start, end], fill=fill, width=width)
     x1, y1 = start
     x2, y2 = end
@@ -318,6 +337,8 @@ def draw_arrow(draw, start, end, fill=NAVY, width=5):
 
 
 def draw_box(draw, box, title, subtitle=None, fill=PALE_BLUE, outline=NAVY, title_size=28, subtitle_size=19):
+    fill = image_color(fill)
+    outline = image_color(outline)
     draw.rounded_rectangle(box, radius=18, fill=fill, outline=outline, width=4)
     x1, y1, x2, y2 = box
     title_font = ImageFont.truetype(FONT_BOLD, title_size)
@@ -325,19 +346,19 @@ def draw_box(draw, box, title, subtitle=None, fill=PALE_BLUE, outline=NAVY, titl
     title_box = draw.textbbox((0, 0), title, font=title_font)
     tx = x1 + ((x2 - x1) - (title_box[2] - title_box[0])) / 2
     ty = y1 + 24
-    draw.text((tx, ty), title, font=title_font, fill=TEXT)
+    draw.text((tx, ty), title, font=title_font, fill=image_color(TEXT))
     if subtitle:
         lines = subtitle.split("\n")
         line_height = subtitle_size + 7
         for i, line in enumerate(lines):
             bbox = draw.textbbox((0, 0), line, font=body_font)
-            draw.text(((x1 + x2 - (bbox[2] - bbox[0])) / 2, y1 + 78 + i * line_height), line, font=body_font, fill=MUTED)
+            draw.text(((x1 + x2 - (bbox[2] - bbox[0])) / 2, y1 + 78 + i * line_height), line, font=body_font, fill=image_color(MUTED))
 
 
 def make_architecture_diagram():
-    im = Image.new("RGB", (1800, 820), WHITE)
+    im = Image.new("RGB", (1800, 820), image_color(WHITE))
     draw = ImageDraw.Draw(im)
-    draw.text((50, 28), "Kiến trúc xử lý MOFI", font=ImageFont.truetype(FONT_BOLD, 38), fill=TEXT)
+    draw.text((50, 28), "Kiến trúc xử lý MOFI", font=ImageFont.truetype(FONT_BOLD, 38), fill=image_color(TEXT))
     boxes = [
         ((55, 240, 325, 420), "Browser", "React 19\nTypeScript"),
         ((405, 240, 700, 420), "Laravel 13", "Routes, session, CSRF\nvalidation, policies"),
@@ -350,20 +371,20 @@ def make_architecture_diagram():
     for a, b in [((325, 330), (405, 330)), ((700, 330), (785, 330)), ((1080, 330), (1165, 330)), ((1455, 330), (1540, 330))]:
         draw_arrow(draw, a, b)
     line_font = ImageFont.truetype(FONT_REG, 20)
-    draw.text((510, 480), "Inertia truyền props và form request giữa Laravel và React", font=line_font, fill=MUTED)
-    draw.text((1145, 515), "Dữ liệu demo được seed; browser không kết nối trực tiếp DB", font=line_font, fill=MUTED)
-    draw.line((140, 610, 1660, 610), fill=MID_GRAY, width=3)
-    draw.text((140, 645), "Nguồn tham khảo crypto công khai", font=line_font, fill=GREEN)
-    draw.text((140, 685), "chỉ dùng cho panel thị trường công khai; danh mục demo dùng fixture mô phỏng", font=line_font, fill=MUTED)
+    draw.text((510, 480), "Inertia truyền props và form request giữa Laravel và React", font=line_font, fill=image_color(MUTED))
+    draw.text((1145, 515), "Dữ liệu demo được seed; browser không kết nối trực tiếp DB", font=line_font, fill=image_color(MUTED))
+    draw.line((140, 610, 1660, 610), fill=image_color(MID_GRAY), width=3)
+    draw.text((140, 645), "Nguồn tham khảo crypto công khai", font=line_font, fill=image_color(GREEN))
+    draw.text((140, 685), "chỉ dùng cho panel thị trường công khai; danh mục demo dùng fixture mô phỏng", font=line_font, fill=image_color(MUTED))
     path = SCRATCH / "architecture.png"
     im.save(path)
     return path
 
 
 def make_business_flow_diagram():
-    im = Image.new("RGB", (1900, 650), WHITE)
+    im = Image.new("RGB", (1900, 650), image_color(WHITE))
     draw = ImageDraw.Draw(im)
-    draw.text((50, 28), "Luồng nghiệp vụ tài sản và giao dịch mô phỏng", font=ImageFont.truetype(FONT_BOLD, 38), fill=TEXT)
+    draw.text((50, 28), "Luồng nghiệp vụ tài sản và giao dịch mô phỏng", font=ImageFont.truetype(FONT_BOLD, 38), fill=image_color(TEXT))
     titles = [
         ("1 Ý định", "User nhập\ngiao dịch", PALE_BLUE),
         ("2 Kiểm tra", "Owner, dữ liệu\nvalidation", "EEF6F0"),
@@ -381,16 +402,16 @@ def make_business_flow_diagram():
         if i < len(titles) - 1:
             draw_arrow(draw, (x + width, 310), (x + width + gap, 310), fill=NAVY, width=4)
         x += width + gap
-    draw.text((180, 500), "Mọi bước ghi dữ liệu nằm trong DB transaction; lỗi thì rollback toàn bộ.", font=ImageFont.truetype(FONT_REG, 23), fill=MUTED)
+    draw.text((180, 500), "Mọi bước ghi dữ liệu nằm trong DB transaction; lỗi thì rollback toàn bộ.", font=ImageFont.truetype(FONT_REG, 23), fill=image_color(MUTED))
     path = SCRATCH / "business-flow.png"
     im.save(path)
     return path
 
 
 def make_erd_diagram():
-    im = Image.new("RGB", (1800, 1150), WHITE)
+    im = Image.new("RGB", (1800, 1150), image_color(WHITE))
     draw = ImageDraw.Draw(im)
-    draw.text((50, 30), "ERD rút gọn cho bản demo", font=ImageFont.truetype(FONT_BOLD, 38), fill=TEXT)
+    draw.text((50, 30), "ERD rút gọn cho bản demo", font=ImageFont.truetype(FONT_BOLD, 38), fill=image_color(TEXT))
     nodes = {
         "users": (690, 110, 1110, 230),
         "portfolios": (120, 360, 540, 480),
@@ -418,8 +439,8 @@ def make_erd_diagram():
         draw_arrow(draw, start, end, fill=MUTED, width=3)
         lx = int((start[0] + end[0]) / 2) - 45
         ly = int((start[1] + end[1]) / 2) - 18
-        draw.text((lx, ly), label, font=label_font, fill=MUTED)
-    draw.text((90, 1040), "Bản demo giữ dữ liệu nghiệp vụ trong Laravel và PostgreSQL; quyền truy cập luôn giới hạn theo user.", font=label_font, fill=MUTED)
+        draw.text((lx, ly), label, font=label_font, fill=image_color(MUTED))
+    draw.text((90, 1040), "Bản demo giữ dữ liệu nghiệp vụ trong Laravel và PostgreSQL; quyền truy cập luôn giới hạn theo user.", font=label_font, fill=image_color(MUTED))
     path = SCRATCH / "erd.png"
     im.save(path)
     return path
@@ -507,8 +528,8 @@ def build_document():
     doc.add_page_break()
 
     add_section_heading(doc, "Tóm tắt điều hành", 1)
-    add_body(doc, "MOFI hiện là một bản demo full-stack có thể mở bằng trình duyệt và sử dụng các luồng chính từ đăng nhập, dashboard, quản lý tài sản, ghi nhận giao dịch mô phỏng, theo dõi thị trường, mục tiêu, cảnh báo, học tập và khu vực quản trị. Frontend và backend đã nằm trong cùng một ứng dụng Laravel kết hợp React/Inertia; dữ liệu được lưu trong PostgreSQL trên Supabase.")
-    add_body(doc, "Kết luận vận hành: web đang chạy bình thường trong phạm vi demo. Tuy nhiên, không nên mô tả MOFI hiện tại là hệ thống giao dịch tài chính production. Tiền, giá và lệnh trong workspace là dữ liệu mô phỏng; chưa có kết nối broker, thanh toán, KYC, tiền thật hoặc cơ chế giám sát production đầy đủ.")
+    add_body(doc, "MOFI hiện là một bản demo full-stack có thể mở bằng trình duyệt và sử dụng các luồng chính từ đăng nhập, dashboard, quản lý tài sản, bảng giá chứng khoán mô phỏng, đặt lệnh paper trading, mục tiêu, cảnh báo, học tập và khu vực quản trị. Frontend và backend đã nằm trong cùng một ứng dụng Laravel kết hợp React/Inertia; dữ liệu được lưu trong PostgreSQL trên Supabase.")
+    add_body(doc, "Kết luận vận hành: web đang chạy bình thường trong phạm vi demo. Bảng Market hiện hiển thị mã, bid/ask, giá khớp cuối, tham chiếu, trần/sàn, khối lượng, ngày giờ mô phỏng và tự đồng bộ theo tick; `/transactions` chỉ nhận nạp/rút, còn mua/bán đi qua Market để giữ đúng quy trình khớp lệnh. Tuy nhiên, không nên mô tả MOFI hiện tại là hệ thống giao dịch tài chính production. Tiền, giá và lệnh trong workspace là dữ liệu mô phỏng; chưa có kết nối broker, thanh toán, KYC, tiền thật hoặc cơ chế giám sát production đầy đủ.")
     add_rich_paragraph(doc, "Đường dẫn đang chạy: ", "", None)
     p = doc.paragraphs[-1]
     add_hyperlink(p, "https://mofi-platform-demo-production.up.railway.app", "https://mofi-platform-demo-production.up.railway.app")
@@ -517,7 +538,7 @@ def build_document():
         ("Frontend", "Đạt trong demo", "React 19, TypeScript, Inertia, các route public và workspace."),
         ("Backend", "Đạt trong demo", "Laravel route, session auth, validation, policies, services và API."),
         ("Database", "Đạt trong demo", "PostgreSQL trên Supabase; migration và seed đã chạy qua pooler IPv4."),
-        ("Giao dịch", "Mô phỏng", "Có ledger, paper order, reservation, execution và P/L; không gửi lệnh ra broker."),
+        ("Giao dịch", "Mô phỏng", "Nạp/rút ở Transactions; mua/bán ở Market với paper order, reservation, execution và P/L; không gửi lệnh ra broker."),
         ("AI và chiến lược", "Mô phỏng", "Copilot rule-based; strategy và simulation dùng dữ liệu/kịch bản có sẵn."),
         ("Production tài chính", "Chưa đạt", "Cần broker, nguồn giá được cấp phép, KYC, thanh toán, monitoring, backup và đối soát."),
     ], widths=[0.22, 0.22, 0.56], font_size=9.2)
@@ -527,7 +548,7 @@ def build_document():
     add_body(doc, "MOFI giúp người dùng nhìn được bức tranh tài chính cá nhân trong một workspace thống nhất: tiền mặt, danh mục đầu tư, tài sản thủ công, mục tiêu, thị trường và các việc cần làm. Bản demo được xây để chứng minh rằng các thao tác chính đi qua backend, được kiểm tra quyền và lưu xuống database, thay vì chỉ là giao diện tĩnh.")
     add_section_heading(doc, "Giá trị đối với người dùng", 2)
     add_bullet(doc, "Theo dõi tổng tài sản và phân bổ từ cùng một nguồn dữ liệu.")
-    add_bullet(doc, "Ghi nhận các giao dịch mua, bán, nạp, rút và cổ tức bằng tiền mô phỏng.")
+    add_bullet(doc, "Ghi nhận nạp/rút tiền mô phỏng tại Transactions; giao dịch mua/bán được tạo từ lệnh Market và chỉ ghi vào ledger khi có execution.")
     add_bullet(doc, "Quan sát giá mẫu, tạo danh sách theo dõi và cảnh báo theo ngưỡng.")
     add_bullet(doc, "Tách rõ phần hoạt động thật trong demo, phần mô phỏng và phần giới thiệu cho tương lai.")
     add_section_heading(doc, "Các nhóm người dùng", 2)
@@ -543,7 +564,7 @@ def build_document():
     add_bullet(doc, "Đăng ký, đăng nhập, đăng xuất và cập nhật thông tin tài khoản; mật khẩu được hash ở backend.")
     add_bullet(doc, "Dashboard đọc số liệu từ portfolio, transactions, market prices và manual assets.")
     add_bullet(doc, "Assets cho phép thêm, sửa, xóa tài sản thủ công; Goals, Tasks, Watchlist và Community có lưu dữ liệu theo user.")
-    add_bullet(doc, "Transactions có bộ lọc và xuất CSV; Paper Trading có reservation, execution, trạng thái OPEN, PARTIALLY_FILLED, FILLED và CANCELLED.")
+    add_bullet(doc, "Transactions có bộ lọc và xuất CSV; lịch sử vẫn hiển thị BUY/SELL đã khớp để đối soát, nhưng form tạo mới chỉ có DEPOSIT/WITHDRAW. Paper Trading có reservation, execution, trạng thái OPEN, PARTIALLY_FILLED, FILLED và CANCELLED.")
     add_bullet(doc, "Market dùng fixture giá mô phỏng cho phần danh mục; panel crypto công khai có thể tham khảo nguồn live được cho phép, không dùng để tính danh mục demo.")
     add_bullet(doc, "Alerts chỉ phát notification khi điều kiện chuyển từ false sang true; Copilot trả lời theo luật xác định và không tự nhận là LLM.")
     add_section_heading(doc, "Những phần chưa nên hiểu là đã hoàn tất production", 2)
@@ -575,12 +596,12 @@ def build_document():
     add_section_heading(doc, "4 Quy trình nghiệp vụ", 1)
     add_picture(doc, make_business_flow_diagram(), caption="Luồng từ ý định người dùng đến số liệu hiển thị trên dashboard.")
     add_section_heading(doc, "Quy trình ghi nhận giao dịch", 2)
-    add_number(doc, "Người dùng chọn portfolio, mã tài sản, chiều mua hoặc bán, số lượng, giá và các khoản phí nếu có.")
-    add_number(doc, "Backend kiểm tra session, ownership, mã được phép giao dịch, currency, số tiền và số lượng không âm.")
-    add_number(doc, "Portfolio được khóa theo dòng trong database; hệ thống kiểm tra cash hoặc quantity khả dụng.")
-    add_number(doc, "Nếu là paper order, hệ thống giữ cash hoặc quantity; khi khớp mới tạo execution và transaction ledger.")
-    add_number(doc, "Transaction immutable được ghi trong DB transaction; lỗi ở bất kỳ bước nào thì rollback toàn bộ.")
-    add_number(doc, "PortfolioSummary tính lại cash, cost basis, securities value và P/L; dashboard nhận kết quả mới sau reload.")
+    add_number(doc, "Người dùng chọn một trong hai luồng: nạp/rút tiền tại Transactions, hoặc đặt lệnh mua/bán tại Market.")
+    add_number(doc, "Với nạp/rút, backend chỉ nhận loại DEPOSIT/WITHDRAW và tự thiết lập ngày, dòng tiền và các trường hệ thống.")
+    add_number(doc, "Với paper order, backend kiểm tra session, ownership, mã VN/VND được phép giao dịch, số tiền hoặc số lượng khả dụng và điều kiện market/limit.")
+    add_number(doc, "Portfolio được khóa theo dòng trong database; lệnh BUY giữ cash, lệnh SELL giữ quantity. Khi quote đạt điều kiện, hệ thống tạo execution theo từng mức bid/ask.")
+    add_number(doc, "Mỗi execution tạo dòng BUY/SELL immutable trong ledger; lỗi ở bất kỳ bước nào thì rollback toàn bộ transaction database.")
+    add_number(doc, "PortfolioSummary tính lại cash, cost basis, securities value và P/L; dashboard và lịch sử nhận kết quả mới sau khi tải lại dữ liệu.")
     add_section_heading(doc, "Quy trình thị trường và cảnh báo", 2)
     add_body(doc, "Người dùng tìm mã trong catalog, thêm vào watchlist rồi tạo điều kiện GTE hoặc LTE. Khi bấm kiểm tra dữ liệu mô phỏng, hệ thống lấy quote đúng ngày demo, khóa rule và đánh giá điều kiện. Chỉ chuyển trạng thái false sang true mới tạo notification; nếu điều kiện vẫn true thì không tạo trùng. Khi điều kiện trở lại false, rule có thể kích hoạt lại ở lần true tiếp theo.")
     add_section_heading(doc, "Quy trình mục tiêu và công việc", 2)
@@ -588,49 +609,63 @@ def build_document():
     add_section_heading(doc, "Quy trình Copilot và mô phỏng", 2)
     add_body(doc, "Copilot nhận các câu hỏi đã được hỗ trợ như tóm tắt danh mục, tỷ trọng và tiến độ mục tiêu, sau đó đọc dữ liệu hiện tại rồi trả lời bằng phép tính deterministic. Simulation áp dụng cú sốc giá lên quantity hiện có để ước tính kết quả; không sửa transaction, cash, manual asset hoặc portfolio trong database.")
 
-    doc.add_page_break()
     add_section_heading(doc, "5 Hướng dẫn sử dụng từng bước", 1)
     add_section_heading(doc, "Bước 1 Mở hệ thống và đăng nhập", 2)
-    add_number(doc, "Mở trình duyệt và truy cập đường dẫn MOFI được cung cấp.")
-    add_number(doc, "Ở landing page, chọn Đăng nhập hoặc Đăng ký. Tài khoản demo do người quản lý môi trường cung cấp; thông tin mật khẩu không ghi trong tài liệu này.")
-    add_number(doc, "Sau khi đăng nhập, hệ thống chuyển đến /dashboard. Tài khoản mới có portfolio rỗng; tài khoản demo có fixture đã seed.")
+    add_step_list(doc, [
+        "Mở trình duyệt và truy cập đường dẫn MOFI được cung cấp.",
+        "Ở landing page, chọn Đăng nhập hoặc Đăng ký. Tài khoản demo do người quản lý môi trường cung cấp; thông tin mật khẩu không ghi trong tài liệu này.",
+        "Sau khi đăng nhập, hệ thống chuyển đến /dashboard. Tài khoản mới có portfolio rỗng; tài khoản demo có fixture đã seed.",
+    ])
     add_section_heading(doc, "Bước 2 Đọc dashboard", 2)
     add_bullet(doc, "Kiểm tra tổng tài sản, cash, securities value và total P/L.")
     add_bullet(doc, "Đọc ngày mô phỏng và trạng thái dữ liệu; không nhầm ngày mô phỏng với realtime.")
     add_bullet(doc, "Xem allocation, portfolio history, market, goals, watchlist, alerts và tasks.")
     add_bullet(doc, "Nếu thiếu quote, giao diện phải hiển thị trạng thái chưa đủ định giá thay vì tự đổi thành 0.")
     add_section_heading(doc, "Bước 3 Quản lý tiền và tài sản", 2)
-    add_number(doc, "Mở Tiền và tài sản để xem cash, holdings và manual assets.")
-    add_number(doc, "Chọn thêm tài sản thủ công, nhập tên, loại, giá trị VND và ngày định giá.")
-    add_number(doc, "Sửa hoặc xóa bản ghi khi cần; việc xóa tài sản không tự sinh một khoản tiền nạp vào portfolio.")
+    add_step_list(doc, [
+        "Mở Tiền và tài sản để xem cash, holdings và manual assets.",
+        "Chọn thêm tài sản thủ công, nhập tên, loại, giá trị VND và ngày định giá.",
+        "Sửa hoặc xóa bản ghi khi cần; việc xóa tài sản không tự sinh một khoản tiền nạp vào portfolio.",
+    ])
     add_section_heading(doc, "Bước 4 Ghi nhận deposit và giao dịch mô phỏng", 2)
-    add_number(doc, "Mở Giao dịch hoặc Danh mục đầu tư và chọn loại Deposit, BUY, SELL, WITHDRAW hoặc DIVIDEND.")
-    add_number(doc, "Nhập đúng mã, số lượng, giá, phí và thuế; hệ thống tự tính gross amount và cash delta ở server.")
-    add_number(doc, "Bấm lưu một lần. Nếu kết nối bị gián đoạn, dùng nút thử lại của cùng form để tránh tạo giao dịch trùng.")
-    add_number(doc, "Reload trang và đối chiếu cash, quantity, basis, P/L và lịch sử. Transaction đã ghi không được sửa trực tiếp trong demo.")
-    add_body(doc, "Kịch bản trình bày nhanh: deposit tiền mô phỏng, BUY một lượng nhỏ mã demo, reload để cho thấy dữ liệu còn trong database, thử SELL vượt quantity để minh họa validation.")
+    add_step_list(doc, [
+        "Mở Nạp / rút tiền. Chọn Nạp tiền ảo hoặc Rút tiền ảo; màn hình này không tạo BUY/SELL.",
+        "Nhập số tiền VND. Hệ thống hiển thị preview, nhưng server mới là nơi kiểm tra số dư và quyết định cash delta.",
+        "Bấm xác nhận một lần. Nếu kết nối bị gián đoạn, retry bằng cùng request key để không tạo dòng tiền trùng.",
+        "Mở Market để mua/bán cổ phiếu; mở lại Transactions để xem lịch sử nạp/rút và các execution BUY/SELL đã được ghi.",
+    ])
+    add_body(doc, "Kịch bản trình bày nhanh: nạp tiền mô phỏng, vào Market đặt một lệnh nhỏ, chờ tick khớp, reload rồi đối chiếu cash, quantity, basis, P/L và lịch sử. Thử SELL vượt quantity để minh họa validation.")
     add_section_heading(doc, "Bước 5 Paper trading trên Market", 2)
-    add_number(doc, "Mở Thị trường, chọn mã và mở vùng đặt lệnh mô phỏng.")
-    add_number(doc, "Chọn market hoặc limit, chiều mua/bán và số lượng. Lệnh mua sẽ giữ cash; lệnh bán sẽ giữ quantity.")
-    add_number(doc, "Theo dõi trạng thái OPEN, PARTIALLY_FILLED, FILLED hoặc CANCELLED; chỉ execution hợp lệ mới tạo transaction.")
-    add_number(doc, "Hủy lệnh mở để giải phóng reservation; thao tác hủy lặp lại không tạo thay đổi phụ.")
+    add_step_list(doc, [
+        "Mở Thị trường và chọn mã MOFI. Bảng giá hiển thị sổ lệnh ba mức, giá khớp gần nhất, tham chiếu, trần/sàn, khối lượng và ngày giờ mô phỏng.",
+        "Chọn Mua hoặc Bán, loại MP (market) hoặc LO (limit), rồi nhập khối lượng. Lệnh mua ăn Ask 1 đến Ask 3; lệnh bán ăn Bid 1 đến Bid 3.",
+        "Bản demo quy đổi 5 giây thật thành 5 phút mô phỏng; trình duyệt polling bảng giá mỗi 2 giây, server chỉ tiến một tick khi đủ 5 giây.",
+        "Theo dõi trạng thái OPEN, PARTIALLY_FILLED, FILLED hoặc CANCELLED. Market order có thể khớp nhiều mức; limit chỉ khớp khi giá đối ứng đạt điều kiện.",
+        "Hủy lệnh OPEN hoặc PARTIALLY_FILLED để giải phóng phần cash/quantity còn giữ; thao tác hủy lặp lại không tạo thay đổi phụ.",
+    ])
     add_section_heading(doc, "Bước 6 Watchlist và alerts", 2)
-    add_number(doc, "Tìm mã theo symbol hoặc tên rồi bấm Theo dõi.")
-    add_number(doc, "Tạo alert với điều kiện giá lớn hơn hoặc bằng, hoặc nhỏ hơn hoặc bằng một ngưỡng dương.")
-    add_number(doc, "Bấm Kiểm tra dữ liệu mô phỏng; mở Notifications để xem notification mới và đánh dấu đã đọc.")
+    add_step_list(doc, [
+        "Tìm mã theo symbol hoặc tên rồi bấm Theo dõi.",
+        "Tạo alert với điều kiện giá lớn hơn hoặc bằng, hoặc nhỏ hơn hoặc bằng một ngưỡng dương.",
+        "Bấm Kiểm tra dữ liệu mô phỏng; mở Notifications để xem notification mới và đánh dấu đã đọc.",
+    ])
     add_section_heading(doc, "Bước 7 Goals và Tasks", 2)
-    add_number(doc, "Tạo goal với tên, target lớn hơn 0, số tiền đã dành và deadline nếu có.")
-    add_number(doc, "Cập nhật saved amount để xem progress; progress bar dừng ở 100% nhưng nhãn có thể lớn hơn 100%.")
-    add_number(doc, "Tạo task cá nhân, đánh dấu complete và kiểm tra bộ đếm trên dashboard.")
+    add_step_list(doc, [
+        "Tạo goal với tên, target lớn hơn 0, số tiền đã dành và deadline nếu có.",
+        "Cập nhật saved amount để xem progress; progress bar dừng ở 100% nhưng nhãn có thể lớn hơn 100%.",
+        "Tạo task cá nhân, đánh dấu complete và kiểm tra bộ đếm trên dashboard.",
+    ])
     add_section_heading(doc, "Bước 8 Copilot, Strategies, Simulation và Learn", 2)
     add_bullet(doc, "Copilot: chọn câu hỏi gợi ý để xem summary có căn cứ; câu hỏi ngoài nhóm hỗ trợ sẽ báo giới hạn.")
     add_bullet(doc, "Strategies: xem chiến lược mẫu và tỷ trọng minh họa; không gọi đây là backtest thật.")
     add_bullet(doc, "Simulation: chọn shock giá, xem kết quả trước và sau; reload để xác nhận portfolio không bị thay đổi.")
     add_bullet(doc, "Learn: mở bài học, đánh dấu hoàn thành và kiểm tra tiến độ sau reload.")
     add_section_heading(doc, "Bước 9 Admin", 2)
-    add_number(doc, "Đăng nhập bằng tài khoản có role admin rồi mở /admin; user thường không được phép truy cập.")
-    add_number(doc, "Xem số lượng users, instruments, market prices và health checks; admin demo hiện chủ yếu là read-only.")
-    add_number(doc, "Không sử dụng tài khoản admin để trình diễn giao dịch thành viên.")
+    add_step_list(doc, [
+        "Đăng nhập bằng tài khoản có role admin rồi mở /admin; user thường không được phép truy cập.",
+        "Xem số lượng users, instruments, market prices và health checks; admin demo hiện chủ yếu là read-only.",
+        "Không sử dụng tài khoản admin để trình diễn giao dịch thành viên.",
+    ])
 
     doc.add_page_break()
     add_section_heading(doc, "6 Thuật toán và logic quan trọng", 1)
@@ -659,7 +694,9 @@ def build_document():
     add_bullet(doc, "Portfolio row được khóa bằng lockForUpdate trước khi kiểm tra cash hoặc quantity, giúp chống hai request đồng thời dùng cùng số dư.")
     add_bullet(doc, "Lỗi validation trả 422, truy cập bản ghi của user khác trả 404 và lỗi bên trong rollback toàn bộ transaction.")
     add_section_heading(doc, "Reservation và execution của paper trading", 2)
-    add_body(doc, "Lệnh BUY giữ cash khả dụng; lệnh SELL giữ quantity khả dụng. Khi quote mô phỏng đạt điều kiện market hoặc limit, hệ thống tạo execution một lần, giải phóng reservation tương ứng và ghi transaction. Lệnh limit chưa đạt vẫn OPEN; lệnh khớp một phần chuyển PARTIALLY_FILLED; phần còn lại có thể hủy.")
+    add_body(doc, "Lệnh BUY giữ cash khả dụng theo giá giới hạn hoặc mức trần dành cho market order; lệnh SELL giữ quantity khả dụng. Khi quote mô phỏng đạt điều kiện market hoặc limit, hệ thống đi qua Ask 1-3 hoặc Bid 1-3 theo thứ tự giá, tạo một execution cho mỗi phần khớp, cập nhật filled_quantity và điều chỉnh reservation còn lại. Lệnh limit chưa đạt vẫn OPEN; lệnh thiếu thanh khoản chuyển PARTIALLY_FILLED; phần còn lại có thể hủy.")
+    add_section_heading(doc, "Nhịp thời gian mô phỏng", 2)
+    add_body(doc, "Một phiên demo gồm các tick từ 09:00 đến 11:25 và 13:00 đến 14:55 theo ngày mô phỏng, tổng cộng 54 tick với cấu hình hiện tại. Mỗi tick tăng 5 phút mô phỏng sau 5 giây thực. Khi hết tick, server chuyển phiên sang CLOSED và khóa nút đặt lệnh, tương tự trạng thái đóng cửa thị trường; việc mở phiên ngày khác là thao tác vận hành demo, không tự sửa lịch sử đã ghi.")
     add_section_heading(doc, "Simulation không làm bẩn dữ liệu", 2)
     add_body(doc, "Kết quả shock giá được tính theo quantity hiện tại và giá sau shock: simulated_value = quantity x quote x (1 - rate). Cash, manual assets và transaction history giữ nguyên. Đây là phép what-if read-only, không phải một giao dịch mới.")
     add_section_heading(doc, "Quyền riêng tư dữ liệu", 2)
@@ -692,8 +729,8 @@ def build_document():
     add_section_heading(doc, "Luồng API giao dịch", 2)
     add_code_line(doc, "GET  /api/v1/portfolios/{portfolio}/summary")
     add_code_line(doc, "GET  /api/v1/portfolios/{portfolio}/transactions")
-    add_code_line(doc, "POST /api/v1/portfolios/{portfolio}/transactions")
-    add_code_line(doc, "POST /api/v1/portfolios/{portfolio}/orders")
+    add_code_line(doc, "POST /api/v1/portfolios/{portfolio}/transactions  # DEPOSIT/WITHDRAW")
+    add_code_line(doc, "POST /api/v1/portfolios/{portfolio}/orders       # BUY/SELL paper order")
     add_code_line(doc, "POST /api/v1/portfolios/{portfolio}/orders/advance")
     add_code_line(doc, "POST /api/v1/orders/{order}/cancel")
     add_body(doc, "API trả decimal dưới dạng chuỗi trong JSON để không làm mất độ chính xác khi đi qua JavaScript. Các endpoint private đều cần session, CSRF phù hợp với thao tác ghi và kiểm tra owner.")
@@ -701,19 +738,20 @@ def build_document():
     add_section_heading(doc, "8 Kiểm thử và tiêu chí nghiệm thu", 1)
     add_section_heading(doc, "Bằng chứng kỹ thuật hiện tại", 2)
     add_table(doc, ["Hạng mục", "Kết quả ghi nhận", "Ý nghĩa"], [
-        ("PHPUnit", "96 tests; 95 passed; 1 skipped; 1.097 assertions", "Luồng auth, ownership, ledger, orders và workspace đã có kiểm thử."),
+        ("PHPUnit với SQLite", "66 tests; 65 passed; 1 skipped; 935 assertions", "Luồng auth, ownership, ledger, orders, quote board và workspace đã có kiểm thử; 1 test được skip theo điều kiện môi trường."),
         ("TypeScript", "Đạt", "Kiểm tra kiểu frontend không lỗi trong lần nghiệm thu."),
         ("Vite production build", "Đạt", "Frontend build được cho deploy."),
-        ("PostgreSQL concurrency", "Đạt", "Kiểm tra decimal, Unicode, binding, đồng thời và chống gửi trùng."),
-        ("Browser QA", "Đạt trong phạm vi demo", "Đã kiểm tra auth, market, transactions, admin và responsive flows."),
+        ("PostgreSQL concurrency", "Có test riêng; không tính vào SQLite run", "Cần chạy khi bật cờ và trỏ vào database kiểm thử PostgreSQL riêng; không chạy destructive test trên DB demo dùng chung."),
+        ("Browser QA live", "Đạt trong phạm vi smoke test", "Đã kiểm tra URL public, login session, bảng giá mô phỏng, trạng thái tick/đóng cửa và form Transactions chỉ nạp/rút."),
         ("Deployment", "Đang online", "Railway health check /up và trang chính trả HTTP 200."),
     ], widths=[0.25, 0.33, 0.42], font_size=9.0)
     add_section_heading(doc, "Acceptance checklist đề nghị khi trình diễn", 2)
     for item in [
         "Mở landing và chỉ ra nhãn dữ liệu mô phỏng.",
         "Đăng nhập demo, kiểm tra dashboard và ngày mô phỏng.",
-        "Deposit -> BUY -> reload -> đối chiếu cash, quantity, basis và P/L.",
-        "Thử SELL vượt quantity để minh họa validation và không tạo dữ liệu sai.",
+        "Deposit -> vào Market đặt paper order -> chờ tick -> reload -> đối chiếu cash, quantity, basis và P/L.",
+        "Mở Transactions xác nhận form chỉ có DEPOSIT/WITHDRAW; lịch sử vẫn có execution BUY/SELL để đối soát.",
+        "Thử limit không đạt, market partial fill và hủy phần còn lại để minh họa reservation.",
         "Tạo goal, watchlist, alert và task; kiểm tra dữ liệu còn sau reload.",
         "Mở Simulation để cho thấy số liệu what-if không làm thay đổi portfolio.",
         "Mở admin bằng tài khoản admin riêng và cho thấy user thường không có quyền.",
@@ -738,7 +776,7 @@ def build_document():
     add_table(doc, ["Thời lượng", "Thao tác", "Thông điệp cần nói"], [
         ("0:00 - 1:00", "Landing và giới thiệu", "MOFI là workspace quản lý tài sản; dữ liệu workspace là mô phỏng."),
         ("1:00 - 2:00", "Đăng nhập và dashboard", "Các KPI, chart và table lấy từ cùng summary backend."),
-        ("2:00 - 3:30", "Deposit, BUY và reload", "Ghi transaction thật vào DB demo; reload vẫn còn dữ liệu."),
+        ("2:00 - 3:30", "Nạp tiền, đặt lệnh Market và reload", "Ghi dữ liệu vào DB demo; chờ tick khớp rồi reload để đối soát."),
         ("3:30 - 4:30", "SELL vượt quantity", "Validation và ownership bảo vệ sổ giao dịch."),
         ("4:30 - 5:30", "Goal, watchlist, alert, task", "Các module workspace có trạng thái và lưu theo user."),
         ("5:30 - 6:30", "Copilot và simulation", "Rule-based và what-if; không giả là LLM hay giao dịch thật."),
@@ -751,7 +789,7 @@ def build_document():
     for paragraph in doc.paragraphs:
         remove_paragraph_border(paragraph)
     doc.save(DOCX_PATH)
-    print(DOCX_PATH)
+    print("DOCX_CREATED")
 
 
 if __name__ == "__main__":
