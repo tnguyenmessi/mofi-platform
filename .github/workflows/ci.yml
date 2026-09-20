@@ -34,9 +34,6 @@ jobs:
           vendor/bin/pint --format agent
           git diff --exit-code
 
-      - name: Run PHPUnit
-        run: vendor/bin/phpunit --colors=never
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -52,3 +49,6 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit --colors=never
