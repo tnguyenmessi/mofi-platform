@@ -19,6 +19,40 @@ On 17/09/2026 the user-authorized password was saved only to the ignored `mofi-a
 - Railway, Render, or Laravel Cloud: Laravel application and worker.
 - Sentry: error monitoring.
 
+## Demo deployment decision (2026-09-20)
+
+- The current application is Laravel + React/Inertia in one deployable monolith. For the demo, deploy the whole `mofi-app` directory to Railway and keep PostgreSQL on the existing Supabase project.
+- Vercel is not used for this build because splitting the Inertia page server from the Laravel session/auth/API would require a separate frontend architecture and cross-origin cookie configuration.
+- `mofi-app/railway.json` builds the Vite bundle, runs migrations and idempotent demo/admin seeders before deploy, serves Laravel on Railway's `$PORT`, and exposes `/up` as the health check.
+- Required Railway variables are listed below. Values must be entered in Railway's Variables screen or CLI and must never be committed.
+
+```text
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=<existing application key>
+APP_URL=<Railway public domain>
+LOG_CHANNEL=stderr
+LOG_LEVEL=error
+DB_CONNECTION=pgsql
+DB_HOST=db.egqpjrwmnckgzlajemnl.supabase.co
+DB_PORT=5432
+DB_DATABASE=postgres
+DB_USERNAME=postgres
+DB_PASSWORD=<Supabase database password>
+DB_SSLMODE=require
+DB_EMULATE_PREPARES=true
+DEMO_ENABLED=true
+DEMO_LOGIN_PASSWORD=<local demo password>
+DEMO_ADMIN_PASSWORD=<local admin password>
+SESSION_DRIVER=database
+SESSION_SECURE_COOKIE=true
+SESSION_SAME_SITE=lax
+CACHE_STORE=database
+QUEUE_CONNECTION=database
+```
+
+After the first deploy, verify `/up`, `/`, `/login`, demo login, `/market`, `/transactions`, and `/admin`. Treat the hosted instance as a demo environment: it uses simulated financial data and must not receive real credentials, broker keys, payment details, or production personal data.
+
 ## Current Supabase project
 
 - Project: `mofi-db`
