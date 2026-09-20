@@ -303,7 +303,7 @@ class WorkspaceTest extends TestCase
 
     public function test_demo_candle_endpoint_returns_ordered_ohlcv_fixture(): void
     {
-        config(['demo.enabled' => true]);
+        config(['demo.enabled' => true, 'demo.login_password' => 'test-only-demo-password']);
         $this->seed(DemoDataSeeder::class);
         $instrument = Instrument::where('symbol', 'MOFI')->firstOrFail();
 
