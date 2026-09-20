@@ -32,7 +32,8 @@ export default function MarketBoard({ portfolioId, instruments, initialOrders }:
             setError('');
             if (!limitPrice && data.quote?.asks?.[0]?.price) setLimitPrice(String(data.quote.asks[0].price));
         } catch (reason: any) {
-            if (reason?.name !== 'AbortError') setError(reason instanceof Error ? reason.message : 'Không tải được bảng giá mô phỏng.');
+            if (reason?.name === 'AbortError') throw reason;
+            setError(reason instanceof Error ? reason.message : 'Không tải được bảng giá mô phỏng.');
         }
     }
 
@@ -47,13 +48,40 @@ export default function MarketBoard({ portfolioId, instruments, initialOrders }:
     }
 
     useEffect(() => {
-        const controller = new AbortController();
+        let disposed = false;
+        let timer: number | undefined;
+        let activeController: AbortController | undefined;
+        let timedOut = false;
         setBoard(null);
         setError('');
-        void loadBoard(controller.signal);
-        void loadOrders(controller.signal);
-        const timer = window.setInterval(() => { void loadBoard(controller.signal); void loadOrders(controller.signal); }, 2000);
-        return () => { controller.abort(); window.clearInterval(timer); };
+
+        const poll = async (): Promise<void> => {
+            if (disposed) return;
+            activeController = new AbortController();
+            timedOut = false;
+            const timeout = window.setTimeout(() => {
+                timedOut = true;
+                activeController?.abort();
+            }, 20000);
+            try {
+                await loadBoard(activeController.signal);
+                await loadOrders(activeController.signal);
+            } catch (reason: any) {
+                if (timedOut && !disposed) setError('Bảng giá phản hồi quá lâu. Vui lòng thử lại.');
+                else if (reason?.name !== 'AbortError' && !disposed) setError('Không đồng bộ được bảng giá mô phỏng.');
+            } finally {
+                window.clearTimeout(timeout);
+                activeController = undefined;
+                if (!disposed) timer = window.setTimeout(() => void poll(), 2000);
+            }
+        };
+
+        void poll();
+        return () => {
+            disposed = true;
+            if (timer) window.clearTimeout(timer);
+            activeController?.abort();
+        };
     }, [instrumentId]);
 
     useEffect(() => {
